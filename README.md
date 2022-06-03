@@ -6,10 +6,9 @@ Repository for the Scripps Institute of Oceanography IMT Lab's Hydra project.
 
 Repository Structure:
 
-- setup-scripts
+- setup-scripts (TODO)
 - sensor-modules
-- environment-validation
-- to-dos
+- experiment
 
 ### Expected Launch: February 2023
 
