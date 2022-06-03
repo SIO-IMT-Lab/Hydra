@@ -9,7 +9,7 @@ Contains
 
 ########### Camera constants ###########
 # Maximum number of images in rolling buffer at once
-ROLL_BUF_SIZE = 100
+ROLL_BUF_SIZE = 10
 # Byte threshold for data validation
 BYTE_THRESHOLD = 1000
 # Location of image directory to save images
@@ -19,7 +19,7 @@ IMG_TYPE = ".png"
 # Amount of time in seconds to wait after event occurs
 EVENT_DELAY = 5
 # Amount of time in seconds to wait after writing
-LOCKOUT_DELAY = 60
+LOCKOUT_DELAY = 1
 # Camera Settings
 EXPOSURE = 100000
 GAIN = 10

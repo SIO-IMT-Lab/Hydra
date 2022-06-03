@@ -14,18 +14,18 @@ from bubblecam_config import * # Cam config constants
 
 class BubbleCam():
 
-	def __init__(self, logger: Logger):
+	def __init__(self):
 		# Capture and write logger (writes to separate files)
-		self.logger = logger.logger
+		self.logger = Logger(True).logger
 		self.cam = Cam('bubblecam', self.capture_function, EXPOSURE, GAIN, BRIGHTNESS, GAMMA, FPS, BACKLIGHT, 0, IMG_TYPE, ROLL_BUF_SIZE)
-		self.glider_state = State.QUIESCENT
+		self.glider_state = State.STORM
 
 
 	def capture_function(self, buffer: deque, lock): # not sure if local reference for buffer is okay but will see in test
 		"""
 		Continuously log data in a shared queue.
 		"""
-		index = 0
+		index = 1
 		while True:
 			time.sleep(1)
 			try:	
@@ -85,9 +85,9 @@ class BubbleCam():
 					num_captured += 1
 
 				write_speed = time.time() - start_time
-				print('f"Wrote {num_captured} images to disk at {dtime_path} in {write_speed} seconds."')
+				print(f"Wrote {num_captured} images to disk at {dtime_path} in {write_speed} seconds.")
 				self.logger.debug(f"Wrote {num_captured} images to disk at {dtime_path} in {write_speed} seconds.")
-				return num_captured, write_speed
+				# return num_captured, write_speed
 			except:
 				self.logger.error("Exception occurred", exc_info=True)
 				return 0, None

@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
 	#Event loop 
     # TODO: This turns on Bubblecam in all states (might not want that)
-	bubblecam = BubbleCam(Logger(True))
+	bubblecam = BubbleCam()
 
 	# Create two logger instances for capturing and writing
 	# Launch two threads for the capture and write function
