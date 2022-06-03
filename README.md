@@ -63,23 +63,22 @@ Points for meeting
 - Other tests to consider
 - Behrad software
 
-## Week 9
-
+## Week 10
 - [ ] Finalize bubblecam
   - [x] Finish thread testing
-  - [ ] Refine logging format
-  - [ ] Refine pre-post wavebreak capture window
+  - [X] Refine logging format
+  - [X] Refine pre-post wavebreak capture window
   - [ ] Capture real images
-
-## Week 10
-
-- [ ] Reimplement foam and white cap cam
+- [X] Reimplement foam and white cap cam
 - [ ] Test reimplementation of foam and white cap cam
+
+## Beyond
 - [ ] Implement pub/sub for state between RPi (supervisor) and cams (Latte Pandas)
 - [ ] GPS time logging for Latte Pandas
 - [ ] Get MET1 feather working with the supervisor
 - [ ] Test SITA and MET1
-
-## Beyond
-
 - [ ] Implement Power Module
+
+## Other
+- [ ] Onboard Behrad to software
+- [ ] Job description for software
