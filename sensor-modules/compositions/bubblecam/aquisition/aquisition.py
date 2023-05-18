@@ -1,6 +1,24 @@
 import PySpin
 import os
 import time
+import subprocess
+
+# Directory to save the images
+output_dir = './'
+
+# Run the Bash script
+output = subprocess.check_output(['./usb_drives.sh'], universal_newlines=True)
+
+# Process the output
+usb_drives = {}
+for line in output.splitlines():
+    device, mount_point = line.split(':')
+    usb_drives[device] = mount_point
+
+# Print the USB drives and their mount points
+for device, mount_point in usb_drives.items():
+    print(f"Found USB Drive: {device}, Mount Point: {mount_point}")
+    output_dir = mount_point + '/images'
 
 # Create a system object
 system = PySpin.System.GetInstance()
@@ -33,7 +51,6 @@ cam.AcquisitionFrameRate.SetValue(frame_rate)
 cam.BeginAcquisition()
 
 # Create the directory to save the images
-output_dir = './images'
 os.makedirs(output_dir, exist_ok=True)
 
 # Capture images continuously
