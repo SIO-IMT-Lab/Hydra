@@ -1,5 +1,5 @@
-Code for the IMT Hydra GPS Module. The GPS used will be provided by the Liquid Robotics sensor systems, but the code
-will be customized for the Hydra's mission.
+# GPS Module
 
-The GPS module should process NMEA strings sent via digital lines and also handle signal interrupts from a 1pps line
-toggled by the GPS.
+Interface code for the Hydra GPS receiver. The hardware originates from the Liquid Robotics sensor suite, but the logic here is tailored for Hydra.
+
+The module parses NMEA messages from the device and also handles the 1 PPS signal used for precise time synchronization.

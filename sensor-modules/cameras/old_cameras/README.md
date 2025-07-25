@@ -1,4 +1,3 @@
-# Module for the 3 cameras
-1. Bubble Cam
-2. Foam Cam
-3. White Cap Cam
+# Legacy Camera Modules
+
+Original implementations of the bubble, foam, and whitecap cameras. These have been superseded by the composition based approach but remain for historical reference.
