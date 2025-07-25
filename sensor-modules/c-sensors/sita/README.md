@@ -1,3 +1,3 @@
-IMT Hydra's SITA module. Uses serial comms to interface/control the SITA device.
+# SITA Module
 
-Sample every 1/2 hour, 24/7.
+Controls the SITA water sampler via serial communication. Sampling occurs every 30 minutes and runs continuously throughout the mission.

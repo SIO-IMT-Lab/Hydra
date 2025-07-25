@@ -1,6 +1,5 @@
-Sensor module for IMT Hydra's MET1, also known as the air particle counter (apc).
+# MET1 Module
 
-Samples every 1/2 hour, 24/7 unless LOCKDOWN mode has been engaged, wherein windspeed is too high for the met1 to safely
-operate.
+Code for interfacing with the MET1 air particle counter.
 
-The Met1 will be operated through calling functions implemented in the Feather microcontroller that uses UART.
+Hydra samples the MET1 every 30 minutes unless the platform enters LOCKDOWN due to high winds. Communication with the device happens through a Feather microcontroller over UART.
