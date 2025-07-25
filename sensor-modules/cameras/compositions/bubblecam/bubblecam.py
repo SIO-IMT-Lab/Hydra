@@ -62,7 +62,7 @@ class BubbleCam():
 		# Create a new directory for this event
 		dtime_str = getDateTimeIso()
 		dtime_path = os.path.join(IMG_DIR, dtime_str)
-		os.mkdir(dtime_path)
+		os.mkdir(dtime_path, exist_ok=True)
 		start_time = time.time() # time the write speed
 		num_captured = 0 # number images in order
 
@@ -82,6 +82,7 @@ class BubbleCam():
 					# img.tofile(os.path.join(dtime_path, img_str)) 
 					with open(f'{dtime_path}/{dtime_str}.txt', 'a') as f:
 						f.write(img)
+						
 					num_captured += 1
 
 				write_speed = time.time() - start_time
