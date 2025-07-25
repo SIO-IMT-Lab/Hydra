@@ -33,6 +33,9 @@ if __name__ == '__main__':
 			# Start the capture thread
 			captureThread.start()
 			prev_state = State.STORM
+			time.sleep(10)
+			writeThread.start()
+			writeThread.join()
 
 		# Receive wavebreak signal
 		# Test receive for now
@@ -40,6 +43,8 @@ if __name__ == '__main__':
 			writeThread.start()
 			writeThread.join()
 			curr_state = State.STORM
+		else:
+			continue
 
 
 
