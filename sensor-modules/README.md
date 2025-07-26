@@ -4,7 +4,6 @@ All code for interacting with the Hydra sensors lives here. Each subdirectory co
 
 - `cameras/` — camera driver implementations
 - `c-sensors/` — "c" sensor modules (GPS, MET1, SITA, etc.)
-- `compositions/` — higher level modules that combine sensors together
 - `tests/` — test suites for the sensor code
 
 ## Documentation
