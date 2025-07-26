@@ -9,9 +9,7 @@ All code for interacting with the Hydra sensors lives here. Each subdirectory co
 
 ## Documentation
 
-The following notes and guides were originally kept in a separate
-`sensor-docs/` directory and have been consolidated here for
-convenience.
+Here are notes and tasks related to the sensor modules.
 
 ### Checking data before storage
 
