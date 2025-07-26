@@ -1,6 +1,6 @@
 # System Outline
 
-This directory documents the planned architecture of the Hydra data collection system. Diagrams such as `comms_state_diagram.png`, `cams_pseudocode.png`, and `modules.drawio.svg` illustrate some of the relationships described below.
+This directory documents the planned architecture of the Hydra data collection system.
 
 ## Overview
 
@@ -17,6 +17,8 @@ Key requirements for the system are:
 2. Hardware that is not needed remains powered off.
 3. SBCs share state information with each other.
 
+![](./modules.drawio.svg)
+
 The software is organized into four main modules:
 
 ### Sensor
@@ -24,6 +26,8 @@ Governs the onboard sensors, providing interfaces for power control, data captur
 
 ### Comms
 Responsible for inter‑process communication between SBCs. Uses a publisher/subscriber pattern where the supervisor SBC distributes state change messages to the other SBCs via the **SBC Communicator** submodule.
+
+![comms-pseudocode](./comms_state_diagram.png)
 
 ### Power
 Manages power distribution for hardware, primarily through the **PDB Controller** which toggles supplies depending on system state (e.g. cameras powered down during quiescent periods).
@@ -33,6 +37,8 @@ Formats and records operational logs. Other modules implement this interface so 
 
 ### Notes on the Camera Submodules
 The camera system comprises Bubble Cam, Foam Cam and White Cap Cam. Bubble and Foam continuously buffer frames while active and flush the buffer when an event is detected. White Cap Cam captures one image every 15 minutes while in Storm or Event states.
+
+![cams-pseudocode](./cams_pseudocode.png)
 
 ## Hardware Specifications
 
