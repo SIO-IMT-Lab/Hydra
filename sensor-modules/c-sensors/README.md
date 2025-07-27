@@ -1,6 +1,6 @@
 # C Sensors
 
-Modules for the non-camera sensors used by Hydra.  Each subfolder contains
+Modules for the non-camera sensors used by Hydra. Each subfolder contains
 code for a specific device.
 
 - `conductivity_sensor/` – conductivity sensor interface
