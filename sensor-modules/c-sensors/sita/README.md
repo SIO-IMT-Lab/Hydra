@@ -1,32 +1,35 @@
-# SITA Module
+# SITA Water Sampler
 
-Controls the SITA water sampler via serial communication. Sampling occurs every 30 minutes and runs continuously throughout the mission.
+This directory contains a small logger for the SITA surface tension
+instrument used on the Hydra platform.  Measurements are taken over a
+serial connection and appended to a text file with timestamps.
 
-**Todo - logging events, logging data collected, logging data i/o**
+## Running the logger
 
-# class SITA inherits from Sensor
+The logger is implemented in `sita.py` and can be executed directly:
 
-### Member Fields
+```bash
+python sita.py --port /dev/ttyUSB4 --baudrate 57600 --output sita_log.txt
+```
 
-- ser: Serial
-- measureTimeLimit: int
-- measureInterval: int
-- baud_rate: int
-- port: String
-- timer: Timer
+All command line arguments are optional.  The most common options are:
 
-### Member methods inherited from Sensor
+- `--port` – serial device where the SITA is connected
+- `--baudrate` – serial baudrate (default `57600`)
+- `--interval` – seconds between measurements (default `1800`)
+- `--output` – file where results will be appended
+- `--measure-time-limit` – maximum seconds to wait for a response
 
-- power_on()
-  - turns on the SITA by making a serial connection
-- power_off()
-  - turn off the SITA by closing serial connection
-- write_data(data, file_handler)
-  - write sensor data to file
-- collect_data()
-  - collect data and call write_data()
+The script powers on the sampler, waits for a reading and powers it
+down again.  Each line written to the output file begins with a UTC
+timestamp followed by the raw response from the device.  If the timeout
+is reached before a response is received, a timeout message is logged
+instead.
 
-### Other member Methods
+Press <kbd>Ctrl+C</kbd> to stop the logger gracefully.
 
-- start_collection_workflow()
-  - helper method to call collect_data() every 30 minutes
+## Legacy code
+
+The `legacy/` directory holds older experiments including example
+ZeroMQ publishers/subscribers and GPIO tests.  They are kept for
+reference and are not required to run the main logger.

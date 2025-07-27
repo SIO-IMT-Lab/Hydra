@@ -1,102 +1,122 @@
-from ..sensor import Sensor
+"""SITA water sampler interface used by Hydra.
+
+This module provides a small :class:`Sita` helper for communicating with the
+SITA controller over a serial connection together with a command line tool to
+log measurements on a fixed interval.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import time
+from pathlib import Path
 
 import serial
-import time
-from threading import Timer
 
-class Sita(Sensor):
-	"""
-    Sita class which inherits from Sensor
-	
-    Attributes
-    ----------
-    
-    ser: Serial
-	measureTimeLimit: int
-	measureInterval: int
-	timer: Timer
 
-    Methods
-    -------
-    
-    power_on()
-  		turns on the SITA by making a serial connection
-	power_off()
-  		turn off the SITA by closing serial connection
-	write_data()
-  		write sensor data to a text file in the same folder
-	collect_data()
-  		collect data and call write_data()
-	start_collection_workflow()
-  		start the data collection workflow by calling collect_data() every 30 minutes
+POWER_UP = b"\r\n:020605000100F2\r\n"
+NO_CAL = b"\r\n:020601000600F1\r\n"
+SAMPLE = b"\r\n:020601000B00EC\r\n"
+QUERY = b"\r\n:020618000500DB\r\n"
+POWER_OFF = b"\r\n:020605000000F3\r\n"
+STOP = b"\r\n:020618000000E0\r\n"
 
-	TODO: 
-		- explore sleep times for powering and data collection/writing
-		- implement logging module
-    """
 
-	# Initialize Member Variables
-	def __init__(self, measureTimeLimit, measureInterval, baud_rate, port, timeout):
-		self.ser = serial.Serial(port, baud_rate, timeout)
-		self.measureTimeLimit = measureTimeLimit
-		self.measureInterval = measureInterval
+class Sita:
+    """Minimal helper around the serial protocol used by the SITA sampler."""
 
-	def power_on(self):
-		""" Power on the SITA using the serial connection """
-		# powerup
-		self.ser.write('\r\n:020605000100F2\r\n'.encode('utf-8'))
-		time.sleep(1)
-        # no cal
-		self.ser.write('\r\n:020601000600F1\r\n'.encode('utf-8'))
-		time.sleep(3)
-        # sample
-		self.ser.write('\r\n:020601000B00EC\r\n'.encode('utf-8'))
-		time.sleep(1)
+    def __init__(self, port: str, baudrate: int = 57600, timeout: float = 1.0,
+                 measure_time_limit: float = 20.0) -> None:
+        self.ser = serial.Serial(port, baudrate, timeout=timeout)
+        self.measure_time_limit = measure_time_limit
 
-	def power_off(self):
-		""" Power off the SITA using the serial connection """
-		self.ser.write('\r\n:020605000000F3\r\n'.encode('utf-8'))
-		time.sleep(0.2)
-		self.ser.write('\r\n:020618000000E0\r\n'.encode('utf-8'))
-		self.ser.close()
-		time.sleep(2)
+    # allow use as a context manager
+    def __enter__(self) -> "Sita":
+        return self
 
-	def write_data(self, line, fdata):
-		""" Write sensor SITA data to sita_log.txt in the same folder """
-		fdata.write(time.ctime(now)+' @ '+line+'\r\n')
-		
-	def collect_data(self):
-		""" Collect data from the SITA every 30 minutes and write it by calling write_data() """
-		fdata = open('sita_log.txt','at')   
-		sampled = False
-		measureStart = time.time()
-		while not sampled:
-            # query
-			self.ser.write('\r\n:020618000500DB\r\n'.encode('utf-8'))
-			time.sleep(0.04)
-			if self.ser.in_waiting > 0:
-    			line = self.ser.readline().decode('utf-8').rstrip()
-                now = time.time()
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    def close(self) -> None:
+        if self.ser.is_open:
+            self.ser.close()
+
+    def power_on(self) -> None:
+        self.ser.write(POWER_UP)
+        time.sleep(1)
+        self.ser.write(NO_CAL)
+        time.sleep(3)
+        self.ser.write(SAMPLE)
+        time.sleep(1)
+
+    def power_off(self) -> None:
+        self.ser.write(POWER_OFF)
+        time.sleep(0.2)
+        self.ser.write(STOP)
+        time.sleep(0.2)
+
+    def take_measurement(self) -> str | None:
+        """Return a single measurement string or ``None`` if timed out."""
+        start = time.time()
+        while True:
+            self.ser.write(QUERY)
+            time.sleep(0.04)
+            if self.ser.in_waiting:
+                line = self.ser.readline().decode("utf-8", errors="ignore").strip()
                 if len(line) > 20:
-                    print(time.ctime(now)+' @ '+line+'\r\n')
-					# call of write_data()
-					self.write_data(line, fdata)
-                    sampled = True
+                    return line
+            if time.time() - start > self.measure_time_limit:
+                return None
+
+
+DEFAULT_PORT = "/dev/ttyUSB4"
+DEFAULT_BAUDRATE = 57600
+DEFAULT_INTERVAL = 30 * 60  # seconds
+DEFAULT_OUTPUT = Path("sita_log.txt")
+DEFAULT_TIMEOUT = 1.0
+DEFAULT_MEASURE_LIMIT = 20.0
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Hydra SITA logger")
+    p.add_argument("--port", default=DEFAULT_PORT, help="Serial port for SITA")
+    p.add_argument("--baudrate", type=int, default=DEFAULT_BAUDRATE,
+                   help="Serial baudrate")
+    p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT,
+                   help="Serial read timeout")
+    p.add_argument("--interval", type=int, default=DEFAULT_INTERVAL,
+                   help="Seconds between samples")
+    p.add_argument("--output", type=Path, default=DEFAULT_OUTPUT,
+                   help="File to append measurements to")
+    p.add_argument("--measure-time-limit", type=float,
+                   default=DEFAULT_MEASURE_LIMIT,
+                   help="Maximum seconds to wait for a measurement")
+    return p.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    with Sita(args.port, args.baudrate, args.timeout,
+              args.measure_time_limit) as sita, open(args.output, "a") as f:
+        try:
+            while True:
+                sita.power_on()
+                line = sita.take_measurement()
+                sita.power_off()
+                timestamp = dt.datetime.utcnow().isoformat()
+                if line:
+                    f.write(f"{timestamp} {line}\n")
+                    f.flush()
+                    print(line)
                 else:
-                    if now > measureStart + self.measureTimeLimit:
-                        print(time.ctime(now)+' @ SITA measurement timeout\r\n')
-                        fdata.write(time.ctime(now)+' @ SITA measurement timeout\r\n')                     
-                        sampled = True		
-	
-	def start_collection_workflow(self):
-		""" Start the data collection workflow by calling collect_data() every 30 minutes """
+                    f.write(f"{timestamp} SITA measurement timeout\n")
+                    f.flush()
+                    print("SITA measurement timeout")
+                time.sleep(args.interval)
+        except KeyboardInterrupt:
+            pass
 
-		# sanity check of serial connection
-		self.ser.flush()
-		if self.ser.in_waiting > 0:
-            line = self.ser.readline().decode('utf-8').rstrip()
-            print(line)
 
-		# setup timer
-		self.timer = Timer(self.measureInterval, self.collect_data)
-		self.timer.start()
+if __name__ == "__main__":
+    main()

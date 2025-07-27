@@ -1,9 +1,11 @@
 # C Sensors
 
-Modules for sensors other than the cameras. Each subfolder contains the code for a specific device.
+Modules for the non-camera sensors used by Hydra.  Each subfolder contains
+code for a specific device.
 
-- `gps/` – GPS receiver interface
-- `met1/` – air particle counter (MET1)
-- `sita/` – SITA serial device
+- `gps/` – GPS receiver interface and 1&nbsp;PPS logger
+- `met1/` – air particle counter
+- `sita/` – SITA surface tension sampler
 
-The `sensor.py` file defines common base functionality shared across these modules.
+Legacy experiments for some devices live inside the respective module
+folders.
