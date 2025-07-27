@@ -1,1 +1,0 @@
-Legacy SITA serial experiments kept for reference. `GetSerial.py` and `SitaSerialTest.py` contain example code and logs. Other files explore pub/sub messaging, handling the GPS 1 PPS signal, and remote power control.

@@ -27,9 +27,3 @@ is reached before a response is received, a timeout message is logged
 instead.
 
 Press <kbd>Ctrl+C</kbd> to stop the logger gracefully.
-
-## Legacy code
-
-The `legacy/` directory holds older experiments including example
-ZeroMQ publishers/subscribers and GPIO tests.  They are kept for
-reference and are not required to run the main logger.
