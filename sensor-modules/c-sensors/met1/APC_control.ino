@@ -83,17 +83,17 @@ void loop() {
   if(range_2 > 100) Serial.println("SWSW 2 Shorted");
 
   // Handling different states of the pump
-  // switch(currentState) {
-  //   case STATE_IDLE:
-  //     idleStateHandler();
-  //     break;
-  //   case STATE_SAMPLE:
-  //     sampleStateHandler();
-  //     break;
-  //   case STATE_FLUSH:
-  //     flushStateHandler();
-  //     break;
-  // }  
+  switch(currentState) {
+    case STATE_IDLE:
+      idleStateHandler();
+      break;
+    case STATE_SAMPLE:
+      sampleStateHandler();
+      break;
+    case STATE_FLUSH:
+      flushStateHandler();
+      break;
+  }  
 }
 
 // Functionality for each state
