@@ -6,6 +6,3 @@ code for a specific device.
 - `gps/` – GPS receiver interface and 1&nbsp;PPS logger
 - `met1/` – air particle counter
 - `sita/` – SITA surface tension sampler
-
-Legacy experiments for some devices live inside the respective module
-folders.
