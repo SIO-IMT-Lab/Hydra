@@ -44,22 +44,22 @@ class Sita(Sensor):
 	def power_on(self):
 		""" Power on the SITA using the serial connection """
 		# powerup
-        self.ser.write('\r\n:020605000100F2\r\n'.encode('utf-8'))
-        time.sleep(1)
+		self.ser.write('\r\n:020605000100F2\r\n'.encode('utf-8'))
+		time.sleep(1)
         # no cal
-        self.ser.write('\r\n:020601000600F1\r\n'.encode('utf-8'))
-        time.sleep(3)
+		self.ser.write('\r\n:020601000600F1\r\n'.encode('utf-8'))
+		time.sleep(3)
         # sample
-        self.ser.write('\r\n:020601000B00EC\r\n'.encode('utf-8'))
-        time.sleep(1)
+		self.ser.write('\r\n:020601000B00EC\r\n'.encode('utf-8'))
+		time.sleep(1)
 
 	def power_off(self):
 		""" Power off the SITA using the serial connection """
 		self.ser.write('\r\n:020605000000F3\r\n'.encode('utf-8'))
-        time.sleep(0.2)
-        self.ser.write('\r\n:020618000000E0\r\n'.encode('utf-8'))
-        self.ser.close()
-        time.sleep(2)
+		time.sleep(0.2)
+		self.ser.write('\r\n:020618000000E0\r\n'.encode('utf-8'))
+		self.ser.close()
+		time.sleep(2)
 
 	def write_data(self, line, fdata):
 		""" Write sensor SITA data to sita_log.txt in the same folder """
@@ -69,13 +69,13 @@ class Sita(Sensor):
 		""" Collect data from the SITA every 30 minutes and write it by calling write_data() """
 		fdata = open('sita_log.txt','at')   
 		sampled = False
-        measureStart = time.time()
-        while not sampled:
+		measureStart = time.time()
+		while not sampled:
             # query
-            self.ser.write('\r\n:020618000500DB\r\n'.encode('utf-8'))
-            time.sleep(0.04)
-            if self.ser.in_waiting > 0:
-                line = self.ser.readline().decode('utf-8').rstrip()
+			self.ser.write('\r\n:020618000500DB\r\n'.encode('utf-8'))
+			time.sleep(0.04)
+			if self.ser.in_waiting > 0:
+    			line = self.ser.readline().decode('utf-8').rstrip()
                 now = time.time()
                 if len(line) > 20:
                     print(time.ctime(now)+' @ '+line+'\r\n')
