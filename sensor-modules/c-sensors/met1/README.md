@@ -1,4 +1,4 @@
-# MET1 Module
+# MET1 Module (Air Particle Counter)
 
 Code for interfacing with the MET1 air particle counter.
 
