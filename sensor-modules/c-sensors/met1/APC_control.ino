@@ -2,8 +2,6 @@
 // IMT Lab - Hydra
 // Arduino Code to control the pumps and valves in the air particle counter
 // By default, the air valve (leading in to the particle counter) is shut
-
-// Written by: Girish Krishnan
 //========================================================================
 
 // PINS
