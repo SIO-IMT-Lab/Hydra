@@ -1,80 +1,130 @@
-import serial
-import os       # can only remove empty directories w os.remove(directory_as_string)
-import shutil   # can be used to remove non-empty directories via shutil.rmtree()
-import datetime
-import signal   # for forcing gpio cleanup after ctrl-c encountered
-import RPi.GPIO as GPIO # to process hardware interrupts
+"""Simple GPS logger used on the Hydra platform.
+
+This module reads NMEA sentences from a USB GPS receiver and logs `$GPRMC`
+messages to a dated text file.  It also listens for a 1&nbsp;PPS signal on a GPIO
+pin and records the rising edge times in the same file.  The script was
+originally written for a Raspberry Pi but can be adapted for other devices.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import signal
 import sys
-# interrupt info @ https://roboticsbackend.com/raspberry-pi-gpio-interrupts-tutorial/
+from pathlib import Path
 
-GPS_DATA_DIR = '/home/pi/Desktop/IMT/gps_timestamps'
-GPIO_PIN = 16
+import RPi.GPIO as GPIO  # type: ignore
+import serial
 
-def init_logs():
-   date = str(datetime.datetime.now().date())
-   gps_log = date + '.txt'
-   gps_log_path = os.path.join(GPS_DATA_DIR, date)
 
-   # return date_path here so you can open file using 'with' operator in main
-   return str(gps_log_path)
+DEFAULT_DATA_DIR = Path("/home/pi/Desktop/IMT/gps_timestamps")
+DEFAULT_GPIO_PIN = 16
+DEFAULT_SERIAL_PORT = "/dev/ttyACM0"
+DEFAULT_BAUDRATE = 9600
 
-   '''
-   if not os.path.exists(date_path):
-       os.mkdir(date_path)
-   '''
+
+def parse_args() -> argparse.Namespace:
+    """Return command line arguments."""
+    parser = argparse.ArgumentParser(description="Hydra GPS logger")
+    parser.add_argument(
+        "--port",
+        default=DEFAULT_SERIAL_PORT,
+        help="Serial device path for the GPS",
+    )
+    parser.add_argument(
+        "--baudrate",
+        type=int,
+        default=DEFAULT_BAUDRATE,
+        help="Serial port baudrate",
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=DEFAULT_DATA_DIR,
+        help="Directory where log files will be written",
+    )
+    parser.add_argument(
+        "--gpio-pin",
+        type=int,
+        default=DEFAULT_GPIO_PIN,
+        help="GPIO pin used for the 1PPS signal",
+    )
+    return parser.parse_args()
+
+def init_log_file(data_dir: Path) -> Path:
+    """Return the path to today's log file inside *data_dir*.
+
+    The directory is created if it does not already exist.
+    """
+    data_dir.mkdir(parents=True, exist_ok=True)
+    date_str = dt.datetime.now().date().isoformat()
+    return data_dir / f"{date_str}.txt"
 
 # ser is open serial port
 # log_file is open file to write data to
 # data is like a string buffer, only write to file when whole string is built since write ops are slow!!
-def process_uart_char(ser, log_file, data):
-    char = ser.read().decode(encoding='utf_8')
+def process_uart_char(ser: serial.Serial, log_file, buffer: str) -> str:
+    """Read a single character and update *buffer*.
 
-    # flush data to file once newline encountered
-    if char == '\n':
-        data = data + char
-
-        #only write to disk if $GPRMC nmea string
-        if "$GPRMC" in data:
-            log_file.write(data)
-
-        # reset data buffer
-        return ''
+    Completed `$GPRMC` sentences are appended to *log_file*.
+    """
+    char = ser.read().decode(errors="ignore")
+    if char == "\n":
+        buffer += char
+        if "$GPRMC" in buffer:
+            log_file.write(buffer)
+            log_file.flush()
+        return ""
     else:
-        return data + char  # append the char to string being built
+        return buffer + char
 
-def one_pps_callback(channel):
-    curr_time = datetime.datetime.now().isoformat()
-    gps_log.write("Rising Edge @ " + curr_time + "\n")
+def one_pps_callback(log_file):
+    """Return a callback that logs 1PPS rising edges to *log_file*."""
 
-def gpio_setup():
+    def _cb(channel: int) -> None:
+        curr_time = dt.datetime.now().isoformat()
+        log_file.write(f"Rising Edge @ {curr_time}\n")
+        log_file.flush()
+
+    return _cb
+
+def gpio_setup(pin: int, log_file) -> None:
+    """Configure GPIO for the 1PPS interrupt."""
+
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(GPIO_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(GPIO_PIN, GPIO.RISING, callback=one_pps_callback)
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.add_event_detect(pin, GPIO.RISING, callback=one_pps_callback(log_file))
 
-def signal_handler(sig, frame):
-    print("ending.........")
-    gps_log.close()
-    GPIO.cleanup()
-    sys.exit(0)
+def signal_handler(log_file):
+    """Return a SIGINT handler that cleans up resources."""
+
+    def _handler(sig, frame):
+        print("ending.........")
+        try:
+            log_file.close()
+        finally:
+            GPIO.cleanup()
+        sys.exit(0)
+
+    return _handler
 
 
-if __name__ == '__main__':
-    with serial.Serial('/dev/ttyACM0', baudrate=9600) as ser:
-        # extract the path to the data log file
-        gps_log_path = init_logs()
+def main() -> None:
+    args = parse_args()
+    log_path = init_log_file(args.data_dir)
 
-        # open the file w global scope so event callback can see it
-        global gps_log
-        gps_log = open(gps_log_path, "w")
+    with serial.Serial(args.port, baudrate=args.baudrate) as ser, open(
+        log_path, "w"
+    ) as log_file:
+        gpio_setup(args.gpio_pin, log_file)
+        signal.signal(signal.SIGINT, signal_handler(log_file))
 
-        #perform gpio setup to set callback for interrupts
-        gpio_setup()
-        # signal setup for ctrl-c interrupt
-        signal.signal(signal.SIGINT, signal_handler)
-
-        # write header to log file
-        gps_log.write('Hello World!\n\n')
-        # init data to be empty
-        data = ''
+        log_file.write("Hello World!\n\n")
+        buffer = ""
         while True:
-            data = process_uart_char(ser, gps_log, data)
+            buffer = process_uart_char(ser, log_file, buffer)
+
+
+if __name__ == "__main__":
+    main()
