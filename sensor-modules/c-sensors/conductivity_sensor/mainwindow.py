@@ -321,5 +321,11 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.zmq_socket.send_string("trigger")
             self.console_append("Sent BubbleCam trigger.")
+            if self.notes_file:
+                ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.notes_file.write(
+                    f"{ts} | {self.base_filename}.csv | BubbleCam triggered\n"
+                )
+                self.console_append("[NOTE] BubbleCam triggered")
         except Exception as exc:
             self.console_append(f"Failed to send trigger: {exc}")
