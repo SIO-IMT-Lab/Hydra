@@ -12,7 +12,7 @@ This repository contains software for the Scripps Institution of Oceanography IM
 
 - Inheritance implementation => ~/sensor-modules/cameras
 - Composition implementation => ~/sensor-modules/compositions
-- Tests for inheritance and composition => ~/sensor-modules/tests
+- Example tests can be found under the BubbleCam module
 - Implementation and testing docs => ~/sensor-modules/docs
 
 ## Remote SSH
