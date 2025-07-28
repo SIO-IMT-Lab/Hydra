@@ -1,4 +1,3 @@
-from collections import deque
 from typing import Deque
 import datetime
 import os
@@ -43,14 +42,14 @@ class BubbleCam:
 
             success, frame = self.cam.capture_image()
             if not success or frame is None:
-                img = f"frame {index}"  # fallback placeholder when no camera
-            else:
-                img = frame
+                self.logger.warning("Failed to capture frame %d", index)
+                index += 1
+                continue
 
             with lock:
                 if len(buffer) >= ROLL_BUF_SIZE:
                     buffer.popleft()
-                buffer.append(img)
+                buffer.append(frame)
 
             self.logger.info("Captured frame %d", index)
             index += 1
@@ -66,11 +65,9 @@ class BubbleCam:
             for idx, img in enumerate(reversed(buffer)):
                 img_path = os.path.join(dtime_path, f"img_{idx}{IMG_TYPE}")
                 if isinstance(img, str):
-                    # placeholder values captured when no camera is present
-                    with open(img_path + ".txt", "w") as f:
-                        f.write(img)
-                else:
-                    cv2.imwrite(img_path, img)
+                    self.logger.warning("Invalid frame encountered at index %d; skipping save", idx)
+                    continue
+                cv2.imwrite(img_path, img)
             buffer.clear()
 
         self.logger.debug("Wrote %d images to %s", idx + 1, dtime_path)
