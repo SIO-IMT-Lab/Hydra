@@ -7,6 +7,7 @@ from typing import Optional
 
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt, QTimer
+import zmq
 import pyqtgraph as pg
 import serial.tools.list_ports
 
@@ -31,6 +32,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot_seconds = 60
         self.time_buf = deque(maxlen=10_000)
         self.data_buf = deque(maxlen=10_000)
+
+        # ZMQ publisher used to trigger BubbleCam events
+        self.zmq_context = zmq.Context()
+        self.zmq_socket = self.zmq_context.socket(zmq.PUB)
+        self.zmq_socket.bind("tcp://0.0.0.0:5555")
 
         self._build_ui()
         self._apply_style()
@@ -74,6 +80,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.log_btn.setCheckable(True)
         self.log_btn.clicked.connect(self.toggle_logging)
 
+        self.trigger_bc_btn = QtWidgets.QPushButton("Trigger BubbleCam")
+        self.trigger_bc_btn.clicked.connect(self.trigger_bubblecam)
+
         self.status_lbl = QtWidgets.QLabel("Disconnected")
         self.status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -90,6 +99,8 @@ class MainWindow(QtWidgets.QMainWindow):
         top_row.addWidget(self.duration_spin)
         top_row.addSpacing(20)
         top_row.addWidget(self.log_btn)
+        top_row.addSpacing(20)
+        top_row.addWidget(self.trigger_bc_btn)
         top_row.addSpacing(20)
         top_row.addWidget(self.status_lbl, 1)
 
@@ -304,3 +315,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def _set_status(self, text: str, color: str) -> None:
         self.status_lbl.setText(text)
         self.status_lbl.setStyleSheet(f"color: {color}; font-weight: bold;")
+
+    def trigger_bubblecam(self) -> None:
+        """Publish a message instructing the BubbleCam to write images."""
+        try:
+            self.zmq_socket.send_string("trigger")
+            self.console_append("Sent BubbleCam trigger.")
+        except Exception as exc:
+            self.console_append(f"Failed to send trigger: {exc}")
