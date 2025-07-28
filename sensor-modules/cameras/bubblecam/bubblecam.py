@@ -6,10 +6,10 @@ import time
 import threading
 import cv2
 
-from .logger import Logger
-from .cam import Cam
-from .state import State
-from .bubblecam_config import *
+from logger import Logger
+from cam import Cam
+from state import State
+from bubblecam_config import *
 
 
 class BubbleCam:

@@ -1,7 +1,7 @@
 import logging
 import datetime
 
-from .bubblecam_config import LOG_FILE, FILEMODE, MESSAGE_FORMAT, DATE_FORMAT
+from bubblecam_config import LOG_FILE, FILEMODE, MESSAGE_FORMAT, DATE_FORMAT
 
 
 class Logger:
