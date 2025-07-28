@@ -7,7 +7,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
-socket.bind('tcp://*:5555')
+socket.bind('tcp://0.0.0.0:5555')
 
 stateChange = False
 
