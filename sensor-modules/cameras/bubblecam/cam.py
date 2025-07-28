@@ -1,7 +1,11 @@
-from collections import deque
 from typing import Callable, Deque
 
 import cv2
+
+try:  # EasyPySpin depends on the proprietary PySpin bindings
+    from EasyPySpin import VideoCapture as SpinVideoCapture
+except Exception:  # pragma: no cover - PySpin not installed
+    SpinVideoCapture = None
 
 
 class Cam:
@@ -33,12 +37,19 @@ class Cam:
         self.image_type = image_type
         self.buffer_size = buffer_size
 
-        # Initialize the video capture device immediately.  If no camera is
-        # present this will still construct the ``VideoCapture`` object, but
-        # ``isOpened`` can be checked by callers if needed.  Making the camera
-        # handle mandatory ensures that frame capture attempts go through OpenCV
-        # rather than falling back to placeholder strings.
-        self.camera: cv2.VideoCapture = cv2.VideoCapture(0)
+        # Initialize the video capture device immediately.  Prefer the FLIR
+        # ``EasyPySpin`` backend when available since BubbleCam uses a Spinnaker
+        # compatible camera.  If that backend cannot be used (e.g. the
+        # proprietary ``PySpin`` bindings are not installed) we fall back to the
+        # standard OpenCV ``VideoCapture`` implementation.  ``isOpened`` can be
+        # checked by callers if needed.
+        if SpinVideoCapture is not None:
+            try:
+                self.camera = SpinVideoCapture(0)
+            except Exception:
+                self.camera = cv2.VideoCapture(0)
+        else:
+            self.camera = cv2.VideoCapture(0)
 
     def start_workflow(self, buffer: Deque, lock) -> None:
         """Start capturing images using ``capture_function``."""
