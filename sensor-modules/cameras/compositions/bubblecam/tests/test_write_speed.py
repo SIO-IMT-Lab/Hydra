@@ -13,9 +13,9 @@ import cv2
 import EasyPySpin # We might be able to remove this
 
 # Local Modules
-from ...cameras.bubble_cam.bubblecam_config import *
-from ...cameras import Cam
-from ...state import State # Glider States
+from ..bubblecam_config import *
+from ..cam import Cam
+from ..state import State # Glider States
 
 class BubbleCam(Cam):
 	"""
