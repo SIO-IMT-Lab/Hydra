@@ -9,7 +9,7 @@ Contains
 
 ########### Camera constants ###########
 # Maximum number of images in rolling buffer at once
-ROLL_BUF_SIZE = 10
+ROLL_BUF_SIZE = 80
 # Byte threshold for data validation
 BYTE_THRESHOLD = 1000
 # Location of image directory to save images
