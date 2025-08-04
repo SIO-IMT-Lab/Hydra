@@ -9,6 +9,7 @@ from logger import Logger
 from cam import Cam
 from state import State
 from bubblecam_config import *
+from sys import getsizeof
 
 
 class BubbleCam:
@@ -36,11 +37,12 @@ class BubbleCam:
         """Continuously capture frames while in :class:`State.STORM`."""
         index = 1
         while True:
-            time.sleep(1)
+            time.sleep(0.2)
             if self.glider_state != State.STORM:
                 continue
 
             success, frame = self.cam.capture_image()
+
             if not success or frame is None:
                 self.logger.warning("Failed to capture frame %d", index)
                 index += 1
@@ -62,12 +64,15 @@ class BubbleCam:
         time.sleep(EVENT_DELAY)
 
         with lock:
+            buffer_size = getsizeof(buffer)
             for idx, img in enumerate(reversed(buffer)):
                 img_path = os.path.join(dtime_path, f"img_{idx}{IMG_TYPE}")
                 if isinstance(img, str):
                     self.logger.warning("Invalid frame encountered at index %d; skipping save", idx)
                     continue
                 cv2.imwrite(img_path, img)
+                buffer_size += getsizeof(img)
+            print("Total buffer size: ", buffer_size)
             buffer.clear()
 
         self.logger.debug("Wrote %d images to %s", idx + 1, dtime_path)

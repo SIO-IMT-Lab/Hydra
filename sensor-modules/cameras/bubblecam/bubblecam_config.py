@@ -9,19 +9,19 @@ Contains
 
 ########### Camera constants ###########
 # Maximum number of images in rolling buffer at once
-ROLL_BUF_SIZE = 10
+ROLL_BUF_SIZE = 40
 # Byte threshold for data validation
 BYTE_THRESHOLD = 1000
 # Location of image directory to save images
-IMG_DIR = "bubblecam_images"
+IMG_DIR = "/media/grant/Extreme Pro/bubblecam_images"
 # Type of image to save to disk
 IMG_TYPE = ".png"
 # Amount of time in seconds to wait after event occurs
-EVENT_DELAY = 5
+EVENT_DELAY = 4
 # Amount of time in seconds to wait after writing
 LOCKOUT_DELAY = 1
 # Camera Settings
-EXPOSURE = 100000
+EXPOSURE = 10000
 GAIN = 10
 BRIGHTNESS = 10
 GAMMA = 0.25
