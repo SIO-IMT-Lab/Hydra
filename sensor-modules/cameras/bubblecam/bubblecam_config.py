@@ -21,8 +21,8 @@ EVENT_DELAY = 4
 # Amount of time in seconds to wait after writing
 LOCKOUT_DELAY = 1
 # Camera Settings
-EXPOSURE = 10000
-GAIN = 10
+EXPOSURE = 1000
+GAIN = 0
 BRIGHTNESS = 10
 GAMMA = 0.25
 FPS = 8

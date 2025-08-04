@@ -58,7 +58,7 @@ class BubbleCam:
 
     def write_images(self, buffer: Deque, lock: threading.Lock) -> None:
         """Write buffered frames to disk."""
-        dtime_str = datetime.datetime.now().isoformat()
+        dtime_str = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         dtime_path = os.path.join(IMG_DIR, dtime_str)
         os.makedirs(dtime_path, exist_ok=True)
         time.sleep(EVENT_DELAY)

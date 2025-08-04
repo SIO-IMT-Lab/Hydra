@@ -8,7 +8,7 @@ class Logger:
     """Simple wrapper around :mod:`logging` used by camera modules."""
 
     def __init__(self, is_cam: bool) -> None:
-        curr_date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
+        curr_date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
         log_filename = f"./logs/{curr_date}_{LOG_FILE}.log"
         open(log_filename, "w").close()
         logging.basicConfig(
