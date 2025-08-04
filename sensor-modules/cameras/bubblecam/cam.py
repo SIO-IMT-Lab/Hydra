@@ -46,6 +46,14 @@ class Cam:
         if SpinVideoCapture is not None:
             try:
                 self.camera = SpinVideoCapture(0)
+                # Use the camera's properties to set the parameters
+                self.camera.set(cv2.CAP_PROP_EXPOSURE, exposure)
+                self.camera.set(cv2.CAP_PROP_GAIN, gain)
+                self.camera.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
+                self.camera.set(cv2.CAP_PROP_GAMMA, gamma)
+                self.camera.set(cv2.CAP_PROP_FPS, fps)
+                self.camera.set(cv2.CAP_PROP_BACKLIGHT, backlight)
+
             except Exception:
                 self.camera = cv2.VideoCapture(0)
         else:
