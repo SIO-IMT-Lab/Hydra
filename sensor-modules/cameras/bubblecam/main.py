@@ -24,6 +24,11 @@ if __name__ == "__main__":
     capture_started = False
 
     while True:
+        if capture_started and not capture_thread.is_alive():
+            bubblecam.cam.reset()
+            capture_thread = threading.Thread(target=bubblecam.capture_loop, args=(queue, lock))
+            capture_thread.start()
+
         # non-blocking check for trigger messages
         try:
             msg = socket.recv_string(flags=zmq.NOBLOCK)
