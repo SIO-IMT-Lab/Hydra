@@ -40,7 +40,10 @@ Key requirements for the system are:
 2. Hardware that is not needed remains powered off.
 3. SBCs share state information with each other.
 
-![](./images/modules.drawio.svg)
+<div style="background:#fff; display:inline-block;">
+  <img src="assets/modules.drawio.svg" alt="Diagram">
+</div>
+
 
 The software is organized into four main modules:
 
@@ -50,7 +53,7 @@ Governs the onboard sensors, providing interfaces for power control, data captur
 ### Comms
 Responsible for inter‑process communication between SBCs. Uses a publisher/subscriber pattern where the supervisor SBC distributes state change messages to the other SBCs via the **SBC Communicator** submodule.
 
-![comms-pseudocode](./images/comms_state_diagram.png)
+![comms-pseudocode](./assets/comms_state_diagram.png)
 
 ### Power
 Manages power distribution for hardware, primarily through the **PDB Controller** which toggles supplies depending on system state (e.g. cameras powered down during quiescent periods).
@@ -61,7 +64,7 @@ Formats and records operational logs. Other modules implement this interface so 
 ### Notes on the Camera Submodules
 The camera system comprises Bubble Cam, Foam Cam and White Cap Cam. Bubble and Foam continuously buffer frames while active and flush the buffer when an event is detected. White Cap Cam captures one image every 15 minutes while in Storm or Event states.
 
-![cams-pseudocode](./images/cams_pseudocode.png)
+![cams-pseudocode](./assets/cams_pseudocode.png)
 
 ## Hardware Specifications
 
