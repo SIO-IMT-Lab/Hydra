@@ -37,10 +37,22 @@ class BubbleCam:
         """Continuously capture frames while in :class:`State.STORM`."""
         index = 1
         while True:
-            success, frame = self.cam.capture_image()
+            try:
+                success, frame = self.cam.capture_image()
+            except Exception as exc:
+                self.logger.error(
+                    "Camera error while capturing frame %d: %s", index, exc
+                )
+                self.cam.reset()
+                time.sleep(1)
+                continue
 
             if not success or frame is None:
-                self.logger.warning("Failed to capture frame %d", index)
+                self.logger.warning(
+                    "Failed to capture frame %d; resetting camera", index
+                )
+                self.cam.reset()
+                time.sleep(1)
                 continue
 
             if self.glider_state != State.STORM:

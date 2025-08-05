@@ -1,6 +1,7 @@
 from typing import Callable, Deque
 
 import cv2
+import time
 
 try:  # EasyPySpin depends on the proprietary PySpin bindings
     from EasyPySpin import VideoCapture as SpinVideoCapture
@@ -37,27 +38,8 @@ class Cam:
         self.image_type = image_type
         self.buffer_size = buffer_size
 
-        # Initialize the video capture device immediately.  Prefer the FLIR
-        # ``EasyPySpin`` backend when available since BubbleCam uses a Spinnaker
-        # compatible camera.  If that backend cannot be used (e.g. the
-        # proprietary ``PySpin`` bindings are not installed) we fall back to the
-        # standard OpenCV ``VideoCapture`` implementation.  ``isOpened`` can be
-        # checked by callers if needed.
-        if SpinVideoCapture is not None:
-            try:
-                self.camera = SpinVideoCapture(0)
-                # Use the camera's properties to set the parameters
-                self.camera.set(cv2.CAP_PROP_EXPOSURE, exposure)
-                self.camera.set(cv2.CAP_PROP_GAIN, gain)
-                self.camera.set(cv2.CAP_PROP_BRIGHTNESS, brightness)
-                self.camera.set(cv2.CAP_PROP_GAMMA, gamma)
-                self.camera.set(cv2.CAP_PROP_FPS, fps)
-                self.camera.set(cv2.CAP_PROP_BACKLIGHT, backlight)
-
-            except Exception:
-                self.camera = cv2.VideoCapture(0)
-        else:
-            self.camera = cv2.VideoCapture(0)
+        self.camera = None
+        self._open_camera()
 
     def start_workflow(self, buffer: Deque, lock) -> None:
         """Start capturing images using ``capture_function``."""
@@ -73,3 +55,31 @@ class Cam:
         """Release the camera handle."""
         if self.camera is not None:
             self.camera.release()
+
+    def _open_camera(self) -> None:
+        """(Re)initialize the camera with the configured parameters."""
+        if SpinVideoCapture is not None:
+            try:
+                self.camera = SpinVideoCapture(0)
+                self.camera.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
+                self.camera.set(cv2.CAP_PROP_GAIN, self.gain)
+                self.camera.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
+                self.camera.set(cv2.CAP_PROP_GAMMA, self.gamma)
+                self.camera.set(cv2.CAP_PROP_FPS, self.fps)
+                self.camera.set(cv2.CAP_PROP_BACKLIGHT, self.backlight)
+                return
+            except Exception:
+                pass
+        self.camera = cv2.VideoCapture(0)
+        self.camera.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
+        self.camera.set(cv2.CAP_PROP_GAIN, self.gain)
+        self.camera.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
+        self.camera.set(cv2.CAP_PROP_GAMMA, self.gamma)
+        self.camera.set(cv2.CAP_PROP_FPS, self.fps)
+        self.camera.set(cv2.CAP_PROP_BACKLIGHT, self.backlight)
+
+    def reset(self) -> None:
+        """Reset the camera connection."""
+        self.power_off()
+        time.sleep(0.5)
+        self._open_camera()
