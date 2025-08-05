@@ -41,7 +41,7 @@ Key requirements for the system are:
 3. SBCs share state information with each other.
 
 <div style="background:#fff; display:inline-block;">
-  <img src="assets/modules.drawio.svg" alt="Diagram">
+  <img src="assets/modules.png" alt="Diagram">
 </div>
 
 
