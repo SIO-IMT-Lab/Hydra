@@ -1,4 +1,4 @@
-from typing import Callable, Deque
+from typing import Callable, Deque, Union
 
 import cv2
 import time
@@ -16,6 +16,7 @@ class Cam:
         self,
         name: str,
         capture_function: Callable,
+        camera_id: Union[int, str],
         exposure: int,
         gain: int,
         brightness: int,
@@ -28,6 +29,7 @@ class Cam:
     ) -> None:
         self.name = name
         self.capture_function = capture_function
+        self.camera_id = camera_id
         self.exposure = exposure
         self.gain = gain
         self.brightness = brightness
@@ -60,7 +62,7 @@ class Cam:
         """(Re)initialize the camera with the configured parameters."""
         if SpinVideoCapture is not None:
             try:
-                self.camera = SpinVideoCapture(0)
+                self.camera = SpinVideoCapture(self.camera_id)
                 self.camera.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
                 self.camera.set(cv2.CAP_PROP_GAIN, self.gain)
                 self.camera.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
@@ -70,7 +72,7 @@ class Cam:
                 return
             except Exception:
                 pass
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(self.camera_id)
         self.camera.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
         self.camera.set(cv2.CAP_PROP_GAIN, self.gain)
         self.camera.set(cv2.CAP_PROP_BRIGHTNESS, self.brightness)
