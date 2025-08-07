@@ -23,7 +23,7 @@ class Camera:
 
     def __init__(self, name: str, config) -> None:
         self.config = config
-        self.logger = Logger(config).logger
+        self.logger = Logger(config, name).logger
         self.cam = Cam(
             name,
             self.capture_loop,
