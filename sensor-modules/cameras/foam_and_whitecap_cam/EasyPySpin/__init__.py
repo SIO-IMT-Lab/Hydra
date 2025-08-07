@@ -1,1 +1,0 @@
-from .EasyPySpin import VideoCapture
