@@ -1,4 +1,4 @@
-"""BubbleCam package exporting the shared EasyPySpin stub."""
+"""FoamCam package exporting the shared EasyPySpin stub."""
 
 from ..common import VideoCapture  # re-export for compatibility
 
