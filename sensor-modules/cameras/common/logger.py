@@ -1,5 +1,6 @@
 import datetime
 import logging
+from pathlib import Path
 
 
 class Logger:
@@ -11,12 +12,14 @@ class Logger:
     supply their own settings without duplicating the implementation.
     """
 
-    def __init__(self, config) -> None:
+    def __init__(self, config, name: str) -> None:
         curr_date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        log_filename = f"./logs/{curr_date}_{config.LOG_FILE}.log"
-        open(log_filename, "w").close()
+        log_dir = Path(__file__).resolve().parent.parent / name / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_filename = log_dir / f"{curr_date}_{config.LOG_FILE}.log"
+        log_filename.touch()
         logging.basicConfig(
-            filename=log_filename,
+            filename=str(log_filename),
             filemode=config.FILEMODE,
             format=config.MESSAGE_FORMAT,
             datefmt=config.DATE_FORMAT,
