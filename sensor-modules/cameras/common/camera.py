@@ -7,9 +7,9 @@ import cv2
 
 from sys import getsizeof
 
-from .logger import Logger
-from .cam import Cam
-from .state import State
+from logger import Logger
+from cam import Cam
+from state import State
 
 
 class Camera:
