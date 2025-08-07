@@ -3,7 +3,7 @@ from time import sleep
 import sys
 
 from ..bubblecam import BubbleCam
-from ..state import State
+from ...common.state import State
 
 def parse_args():
     parser = argparse.ArgumentParser()
