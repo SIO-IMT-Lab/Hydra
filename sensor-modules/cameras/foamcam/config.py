@@ -27,6 +27,7 @@ BRIGHTNESS = 10
 GAMMA = 0.25
 FPS = 8
 BACKLIGHT = 1
+CAMERA_ID = 1
 
 ########### Logging Constants ###########
 # Name of file to log to

@@ -27,6 +27,7 @@ class Camera:
         self.cam = Cam(
             name,
             self.capture_loop,
+            config.CAMERA_ID,
             config.EXPOSURE,
             config.GAIN,
             config.BRIGHTNESS,
