@@ -3,9 +3,12 @@ import os
 import sys
 from time import sleep
 
-from ..bubblecam import BubbleCam
-from ..bubblecam_config import *
-from ..state import State
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from bubblecam import BubbleCam
+from config import *
+from common.state import State
 
 def parse_args():
     parser = argparse.ArgumentParser()

@@ -1,6 +1,7 @@
 # Python Standard Library Modules
 import argparse
 import os
+import sys
 import logging
 import datetime
 import multiprocessing as mp
@@ -10,12 +11,14 @@ from time import sleep, time
 # Copied from cSBC (Will remove unused modules as necessary)
 # Third Party Modules
 import cv2
-import EasyPySpin # We might be able to remove this
 
 # Local Modules
-from ..bubblecam_config import *
-from ..cam import Cam
-from ..state import State # Glider States
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from config import *
+from common.cam import Cam
+from common.state import State  # Glider States
 
 class BubbleCam(Cam):
 	"""

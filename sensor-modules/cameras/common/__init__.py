@@ -1,4 +1,4 @@
-"""Camera helpers for the bubblecam package.
+"""Camera helpers shared by the camera packages.
 
 This package normally exposes :class:`VideoCapture` from the ``EasyPySpin``
 module which depends on the FLIR ``PySpin`` bindings.  Those bindings are not
