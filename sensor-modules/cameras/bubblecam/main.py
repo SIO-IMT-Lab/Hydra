@@ -12,6 +12,7 @@ sys.path.append(str(COMMON_DIR))
 
 from bubblecam import BubbleCam
 from state import State
+import config
 
 if __name__ == "__main__":
     prev_state = State.QUIESCENT
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     # ZMQ subscriber listens for trigger events from the conductivity UI
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
-    socket.connect("tcp://192.168.100.2:5555")
+    socket.connect(f"tcp://{config.SERVER_IP}:{config.SERVER_PORT}")
     socket.setsockopt(zmq.SUBSCRIBE, b"trigger")
 
     capture_thread = threading.Thread(target=bubblecam.capture_loop, args=(queue, lock))

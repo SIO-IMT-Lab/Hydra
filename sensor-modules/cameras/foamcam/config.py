@@ -29,6 +29,11 @@ FPS = 8
 BACKLIGHT = 1
 CAMERA_ID = 1
 
+########### Server Constants ###########
+# IP address and port of the trigger publisher
+SERVER_IP = "192.168.100.2"
+SERVER_PORT = 5555
+
 ########### Logging Constants ###########
 # Name of file to log to
 LOG_FILE = "fcam"
