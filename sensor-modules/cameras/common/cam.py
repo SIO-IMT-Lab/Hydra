@@ -56,7 +56,14 @@ class Cam:
     def power_off(self) -> None:
         """Release the camera handle."""
         if self.camera is not None:
-            self.camera.release()
+            try:
+                self.camera.release()
+            except Exception:
+                # Ignore release errors so that one failing camera does not
+                # impact others that might still be running.
+                pass
+            finally:
+                self.camera = None
 
     def _open_camera(self) -> None:
         """(Re)initialize the camera with the configured parameters."""
@@ -82,6 +89,14 @@ class Cam:
 
     def reset(self) -> None:
         """Reset the camera connection."""
+        # Safely power off the existing camera and attempt to reopen it.  Any
+        # exceptions during shutdown are swallowed so that the caller can
+        # decide how to proceed if the camera is no longer available (for
+        # example, it may have been unplugged).
         self.power_off()
         time.sleep(0.5)
-        self._open_camera()
+        try:
+            self._open_camera()
+        except Exception:
+            # Leave ``self.camera`` as ``None`` if reinitialisation fails.
+            pass

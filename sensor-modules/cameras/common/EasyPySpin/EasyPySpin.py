@@ -71,10 +71,26 @@ class VideoCapture:
 
     def _decrement_system(self):
         with VideoCapture._lock:
-            VideoCapture._system_refcount -= 1
-            if VideoCapture._system_refcount == 0 and VideoCapture._system is not None:
-                VideoCapture._system.ReleaseInstance()
-                VideoCapture._system = None
+            # Prevent the reference counter from dropping below zero in case
+            # ``release`` is called multiple times on the same instance.
+            if VideoCapture._system_refcount > 0:
+                VideoCapture._system_refcount -= 1
+
+            if (
+                VideoCapture._system_refcount == 0
+                and VideoCapture._system is not None
+            ):
+                try:
+                    VideoCapture._system.ReleaseInstance()
+                except Exception as exc:
+                    # When multiple cameras are in use the underlying Spinnaker
+                    # system can refuse to shut down if another process still
+                    # holds a reference to a camera.  Swallow the exception so
+                    # that one misbehaving camera does not bring down the
+                    # application.
+                    print(f"Warning: failed to release Spinnaker system: {exc}")
+                finally:
+                    VideoCapture._system = None
 
     def __del__(self):
         try:
@@ -84,9 +100,14 @@ class VideoCapture:
                 self.cam.DeInit()
                 del self.cam
         except Exception:
+            # Any failure here should not propagate out of ``__del__``
             pass
         finally:
-            self._decrement_system()
+            try:
+                self._decrement_system()
+            except Exception:
+                # Ignore errors during system shutdown
+                pass
 
     def release(self):
         """
