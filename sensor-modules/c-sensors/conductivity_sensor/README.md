@@ -1,13 +1,8 @@
 # Conductivity Sensor UI
 
 This directory contains a small PyQt6 application used to view and log data from
-the conductivity sensor.
-
-- `serial_reader.py` – QThread responsible for reading samples from the serial
-  port.
-- `mainwindow.py` – the main Qt window handling the user interface, plotting and
-  logging.
-- `app.py` – lightweight entry point used to launch the UI.
+the conductivity sensor.  All of the code lives in a single `app.py` script that
+can be run directly.
 
 ## Installation
 
@@ -20,10 +15,10 @@ pip install pyqt6 pyqtgraph pyserial
 
 ## Usage
 
-Run the application using Python's module syntax so that relative imports work:
+Run the application directly with Python:
 
 ```bash
-python -m conductivity_sensor.app
+python app.py
 ```
 
 The window allows you to select a serial port, start/stop streaming and logging,
