@@ -27,7 +27,7 @@ BRIGHTNESS = 10
 GAMMA = 0.25
 FPS = 8
 BACKLIGHT = 1
-CAMERA_ID = 1
+CAMERA_ID = "19061163"
 
 ########### Server Constants ###########
 # IP address and port of the trigger publisher

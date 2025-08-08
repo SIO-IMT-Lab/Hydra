@@ -18,7 +18,7 @@ GAMMA = 0.25
 FPS = 8
 BACKLIGHT = 1
 # Camera identifier
-CAMERA_ID = 0
+CAMERA_ID = "20407408"
 # Capture interval in seconds (15 minutes)
 CAPTURE_INTERVAL = 15 * 60
 
