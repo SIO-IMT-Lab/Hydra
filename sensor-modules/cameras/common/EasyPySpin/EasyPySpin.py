@@ -1,5 +1,6 @@
 import cv2
 import PySpin
+import threading
 
 
 class VideoCapture:
@@ -27,6 +28,10 @@ class VideoCapture:
         Gets a property.
     """
 
+    _system = None
+    _system_refcount = 0
+    _lock = threading.Lock()
+
     def __init__(self, index):
         """
         Parameters
@@ -34,17 +39,25 @@ class VideoCapture:
         index : int
             id of the video capturing device to open.
         """
-        self._system = PySpin.System.GetInstance()
-        self._cam_list = self._system.GetCameras()
-        # num_cam = self.cam_list.GetSize()
+        with VideoCapture._lock:
+            if VideoCapture._system is None:
+                VideoCapture._system = PySpin.System.GetInstance()
+            VideoCapture._system_refcount += 1
+        self._system = VideoCapture._system
+
+        cam_list = self._system.GetCameras()
         try:
-            if type(index) is int:
-                self.cam = self._cam_list.GetByIndex(index)
+            if isinstance(index, int):
+                self.cam = cam_list.GetByIndex(index)
             else:
-                self.cam = self._cam_list.GetBySerial(index)
-        except:
+                self.cam = cam_list.GetBySerial(index)
+        except Exception:
             print("camera failed to properly initialize!")
+            cam_list.Clear()
+            self._decrement_system()
             return None
+        finally:
+            cam_list.Clear()
 
         self.cam.Init()
         self.nodemap = self.cam.GetNodeMap()
@@ -56,16 +69,24 @@ class VideoCapture:
         handling_mode_entry = handling_mode.GetEntryByName("NewestOnly")
         handling_mode.SetIntValue(handling_mode_entry.GetValue())
 
+    def _decrement_system(self):
+        with VideoCapture._lock:
+            VideoCapture._system_refcount -= 1
+            if VideoCapture._system_refcount == 0 and VideoCapture._system is not None:
+                VideoCapture._system.ReleaseInstance()
+                VideoCapture._system = None
+
     def __del__(self):
         try:
-            if self.cam.IsStreaming():
+            if hasattr(self, "cam") and self.cam.IsStreaming():
                 self.cam.EndAcquisition()
-            self.cam.DeInit()
-            del self.cam
-            self._cam_list.Clear()
-            self._system.ReleaseInstance()
-        except:
+            if hasattr(self, "cam"):
+                self.cam.DeInit()
+                del self.cam
+        except Exception:
             pass
+        finally:
+            self._decrement_system()
 
     def release(self):
         """
