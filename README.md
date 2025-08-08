@@ -40,9 +40,7 @@ Key requirements for the system are:
 2. Hardware that is not needed remains powered off.
 3. SBCs share state information with each other.
 
-<div style="background:#fff; display:inline-block;">
-  <img src="assets/modules.png" alt="Diagram">
-</div>
+![modules](./assets/modules.png)
 
 
 The software is organized into four main modules:
