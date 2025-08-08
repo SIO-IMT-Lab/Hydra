@@ -23,7 +23,9 @@ def enumerate_cameras() -> List[str]:
         cam = cam_list.GetByIndex(i)
         serial = cam.TLDevice.DeviceSerialNumber.GetValue()
         serials.append(serial)
+        del cam
     cam_list.Clear()
+    del cam_list
     system.ReleaseInstance()
     return serials
 
@@ -47,6 +49,7 @@ def preview_camera(serial: str) -> None:
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cap.release()
+    del cap
     cv2.destroyWindow(window)
 
 
