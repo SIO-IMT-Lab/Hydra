@@ -1,153 +1,383 @@
 import cv2
 import PySpin
-from typing import Optional
 
-# ---------- Global singletons ----------
-_SPIN_SYSTEM = PySpin.System.GetInstance()
-_SPIN_CAM_LIST = _SPIN_SYSTEM.GetCameras()
 
-def spin_cleanup():
-    """Call once at program exit (after all cameras are released)."""
-    _SPIN_CAM_LIST.Clear()
-    _SPIN_SYSTEM.ReleaseInstance()
-
-def list_cameras():
-    """Return [{index, serial, user_id}] for discovery."""
-    out = []
-    for i in range(_SPIN_CAM_LIST.GetSize()):
-        cam = _SPIN_CAM_LIST.GetByIndex(i)
-        cam.Init()
-        serial = cam.DeviceSerialNumber.ToString() if cam.DeviceSerialNumber.IsReadable() else ""
-        user_id = cam.DeviceUserID.ToString() if cam.DeviceUserID.IsReadable() else ""
-        out.append({"index": i, "serial": serial, "user_id": user_id})
-        cam.DeInit()
-    return out
-
-def _get_by_user_id(user_id: str):
-    for i in range(_SPIN_CAM_LIST.GetSize()):
-        cam = _SPIN_CAM_LIST.GetByIndex(i)
-        cam.Init()
-        uid = cam.DeviceUserID.ToString() if cam.DeviceUserID.IsReadable() else ""
-        cam.DeInit()
-        if uid == user_id:
-            return _SPIN_CAM_LIST.GetByIndex(i)
-    raise RuntimeError(f"Camera with DeviceUserID='{user_id}' not found")
-
-# ---------- Capture class ----------
 class VideoCapture:
     """
-    Open a FLIR camera for video capturing (safe for multiple concurrent instances).
-    Open by: serial (str), user_id (str, with by='user_id'), or index (int).
+    Open a FLIR camera for video capturing.
+
+    Attributes
+    ----------
+    cam : PySpin.CameraPtr
+        camera
+    nodemap : PySpin.INodeMap
+        nodemap represents the elements of a camera description file.
+
+    Methods
+    -------
+    read()
+        returns the next frame.
+    release()
+        Closes capturing device.
+    isOpened()
+        Whether a camera is open or not.
+    set(propId, value)
+        Sets a property.
+    get(propId)
+        Gets a property.
     """
 
-    def __init__(self, device, by: str = "serial"):
+    def __init__(self, index):
         """
-        device: str (serial or user_id) or int (index)
-        by:     'serial' | 'user_id' | 'index'
+        Parameters
+        ----------
+        index : int
+            id of the video capturing device to open.
         """
-        self._system = _SPIN_SYSTEM
-        self._cam_list = _SPIN_CAM_LIST
-        self.cam: Optional[PySpin.CameraPtr] = None
-        self._streaming = False
-
-        # Resolve camera handle
+        self._system = PySpin.System.GetInstance()
+        self._cam_list = self._system.GetCameras()
+        # num_cam = self.cam_list.GetSize()
         try:
-            if isinstance(device, int) or by == "index":
-                self.cam = self._cam_list.GetByIndex(int(device))
-            elif by == "user_id":
-                self.cam = _get_by_user_id(str(device))
-            else:  # default: serial
-                self.cam = self._cam_list.GetBySerial(str(device))
-        except Exception as e:
-            raise RuntimeError(f"Failed to get camera handle: {e}")
-
-        # Init + basic node setup
-        try:
-            self.cam.Init()
-            # Continuous
-            self.cam.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
-            # Stream buffer policy: NewestOnly
-            s_node_map = self.cam.GetTLStreamNodeMap()
-            handling_mode = PySpin.CEnumerationPtr(s_node_map.GetNode("StreamBufferHandlingMode"))
-            handling_mode_entry = handling_mode.GetEntryByName("NewestOnly")
-            handling_mode.SetIntValue(handling_mode_entry.GetValue())
-        except Exception as e:
-            # Ensure clean state if init failed
-            try:
-                self.cam.DeInit()
-            except:
-                pass
-            raise RuntimeError(f"Camera initialization failed: {e}")
-
-    # --- lifecycle ---
-    def start(self):
-        if not self._streaming:
-            self.cam.BeginAcquisition()
-            self._streaming = True
-
-    def stop(self):
-        if self._streaming and self.cam.IsStreaming():
-            self.cam.EndAcquisition()
-        self._streaming = False
-
-    def release(self):
-        """Stop and deinit this camera (does NOT release the global system)."""
-        try:
-            self.stop()
-            if self.cam:
-                self.cam.DeInit()
+            if type(index) is int:
+                self.cam = self._cam_list.GetByIndex(index)
+            else:
+                self.cam = self._cam_list.GetBySerial(index)
         except:
-            pass
-        finally:
-            self.cam = None
+            print("camera failed to properly initialize!")
+            return None
+
+        self.cam.Init()
+        self.nodemap = self.cam.GetNodeMap()
+
+        s_node_map = self.cam.GetTLStreamNodeMap()
+        handling_mode = PySpin.CEnumerationPtr(
+            s_node_map.GetNode("StreamBufferHandlingMode")
+        )
+        handling_mode_entry = handling_mode.GetEntryByName("NewestOnly")
+        handling_mode.SetIntValue(handling_mode_entry.GetValue())
 
     def __del__(self):
-        # Best effort; do NOT touch global system here
         try:
-            self.release()
+            if self.cam.IsStreaming():
+                self.cam.EndAcquisition()
+            self.cam.DeInit()
+            del self.cam
+            self._cam_list.Clear()
+            self._system.ReleaseInstance()
         except:
             pass
 
-    def isOpened(self) -> bool:
+    def release(self):
+        """
+        Closes capturing device. The method call VideoCapture destructor.
+        """
+        self.__del__()
+
+    def isOpened(self):
+        """
+        Returns true if video capturing has been initialized already.
+        """
         try:
-            return self.cam is not None and self.cam.IsValid()
+            return self.cam.IsValid()
         except:
             return False
 
-    # --- IO ---
-    def read(self, timeout_ms: int = 1000):
+    def read(self):
         """
-        Returns (ok, frame). Add a timeout to avoid hangs when shutting down.
+        returns the next frame.
+
+        Returns
+        -------
+        retval : bool
+            false if no frames has been grabbed.
+        image : array_like 
+            grabbed image is returned here. If no image has been grabbed the image will be None.
         """
-        if not self._streaming:
-            self.start()
+        if not self.cam.IsStreaming():
+            self.cam.BeginAcquisition()
 
-        try:
-            image = self.cam.GetNextImage(timeout_ms)
-        except PySpin.SpinnakerException:
-            return False, None
-
+        image = self.cam.GetNextImage()
         if image.IsIncomplete():
-            image.Release()
             return False, None
 
-        frame = image.GetNDArray()
+        img_NDArray = image.GetNDArray()
         image.Release()
-        return True, frame
+        return True, img_NDArray
 
-    # --- (optional) example setters you can extend ---
-    def set_exposure_us(self, value: float):
-        if value < 0:
-            self.cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Continuous)
-        else:
-            self.cam.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
-            mn, mx = self.cam.ExposureTime.GetMin(), self.cam.ExposureTime.GetMax()
-            self.cam.ExposureTime.SetValue(max(mn, min(mx, value)))
+    def set(self, propId, value):
+        """
+        Sets a property in the VideoCapture.
 
-    def set_gain_db(self, value: float):
-        if value < 0:
-            self.cam.GainAuto.SetValue(PySpin.GainAuto_Continuous)
+        Parameters
+        ----------
+        propId_id : cv2.VideoCaptureProperties
+            Property identifier from cv2.VideoCaptureProperties
+        value : int or float or bool
+            Value of the property.
+        
+        Returns
+        -------
+        retval : bool
+           True if property setting success.
+        """
+        # Exposure setting
+        if propId == cv2.CAP_PROP_EXPOSURE:
+            # Auto
+            if value < 0:
+                return self._set_ExposureAuto(PySpin.ExposureAuto_Continuous)
+
+            # Manual
+            ret = self._set_ExposureAuto(PySpin.ExposureAuto_Off)
+            if ret == False:
+                return False
+            return self._set_ExposureTime(value)
+
+        # Gain setting
+        if propId == cv2.CAP_PROP_GAIN:
+            # Auto
+            if value < 0:
+                return self._set_GainAuto(PySpin.GainAuto_Continuous)
+
+            # Manual
+            ret = self._set_GainAuto(PySpin.GainAuto_Off)
+            if ret == False:
+                return False
+            return self._set_Gain(value)
+
+        # Brightness(EV) setting
+        if propId == cv2.CAP_PROP_BRIGHTNESS:
+            return self._set_Brightness(value)
+
+        # Gamma setting
+        if propId == cv2.CAP_PROP_GAMMA:
+            return self._set_Gamma(value)
+
+        # FrameRate setting
+        if propId == cv2.CAP_PROP_FPS:
+            return self._set_FrameRate(value)
+
+        # BackLigth setting
+        if propId == cv2.CAP_PROP_BACKLIGHT:
+            return self._set_BackLight(value)
+
+        return False
+
+    def get(self, propId):
+        """
+        Returns the specified VideoCapture property.
+        
+        Parameters
+        ----------
+        propId_id : cv2.VideoCaptureProperties
+            Property identifier from cv2.VideoCaptureProperties
+        
+        Returns
+        -------
+        value : int or float or bool
+           Value for the specified property. Value Flase is returned when querying a property that is not supported.
+        """
+        if propId == cv2.CAP_PROP_EXPOSURE:
+            return self._get_ExposureTime()
+
+        if propId == cv2.CAP_PROP_GAIN:
+            return self._get_Gain()
+
+        if propId == cv2.CAP_PROP_BRIGHTNESS:
+            return self._get_Brightness()
+
+        if propId == cv2.CAP_PROP_GAMMA:
+            return self._get_Gamma()
+
+        if propId == cv2.CAP_PROP_FRAME_WIDTH:
+            return self._get_Width()
+
+        if propId == cv2.CAP_PROP_FRAME_HEIGHT:
+            return self._get_Height()
+
+        if propId == cv2.CAP_PROP_FPS:
+            return self._get_FrameRate()
+
+        if propId == cv2.CAP_PROP_TEMPERATURE:
+            return self._get_Temperature()
+
+        if propId == cv2.CAP_PROP_BACKLIGHT:
+            return self._get_BackLight()
+
+        return False
+
+    def __clip(self, a, a_min, a_max):
+        return min(max(a, a_min), a_max)
+
+    def _set_ExposureTime(self, value):
+        if not type(value) in (int, float):
+            return False
+        exposureTime_to_set = self.__clip(
+            value, self.cam.ExposureTime.GetMin(), self.cam.ExposureTime.GetMax()
+        )
+        self.cam.ExposureTime.SetValue(exposureTime_to_set)
+        return True
+
+    def _set_ExposureAuto(self, value):
+        self.cam.ExposureAuto.SetValue(value)
+        return True
+
+    def _set_Gain(self, value):
+        if not type(value) in (int, float):
+            return False
+        gain_to_set = self.__clip(value, self.cam.Gain.GetMin(), self.cam.Gain.GetMax())
+        self.cam.Gain.SetValue(gain_to_set)
+        return True
+
+    def _set_GainAuto(self, value):
+        self.cam.GainAuto.SetValue(value)
+        return True
+
+    def _set_Brightness(self, value):
+        if not type(value) in (int, float):
+            return False
+        brightness_to_set = self.__clip(
+            value,
+            self.cam.AutoExposureEVCompensation.GetMin(),
+            self.cam.AutoExposureEVCompensation.GetMax(),
+        )
+        self.cam.AutoExposureEVCompensation.SetValue(brightness_to_set)
+        return True
+
+    def _set_Gamma(self, value):
+        if not type(value) in (int, float):
+            return False
+        gamma_to_set = self.__clip(
+            value, self.cam.Gamma.GetMin(), self.cam.Gamma.GetMax()
+        )
+        self.cam.Gamma.SetValue(gamma_to_set)
+        return True
+
+    def _set_FrameRate(self, value):
+        if not type(value) in (int, float):
+            return False
+        self.cam.AcquisitionFrameRateEnable.SetValue(True)
+        fps_to_set = self.__clip(
+            value,
+            self.cam.AcquisitionFrameRate.GetMin(),
+            self.cam.AcquisitionFrameRate.GetMax(),
+        )
+        self.cam.AcquisitionFrameRate.SetValue(fps_to_set)
+        return True
+
+    def _set_BackLight(self, value):
+        if value == True:
+            backlight_to_set = PySpin.DeviceIndicatorMode_Active
+        elif value == False:
+            backlight_to_set = PySpin.DeviceIndicatorMode_Inactive
         else:
-            self.cam.GainAuto.SetValue(PySpin.GainAuto_Off)
-            mn, mx = self.cam.Gain.GetMin(), self.cam.Gain.GetMax()
-            self.cam.Gain.SetValue(max(mn, min(mx, value)))
+            return False
+        self.cam.DeviceIndicatorMode.SetValue(backlight_to_set)
+        return True
+
+    def _get_ExposureTime(self):
+        return self.cam.ExposureTime.GetValue()
+
+    def _get_Gain(self):
+        return self.cam.Gain.GetValue()
+
+    def _get_Brightness(self):
+        return self.cam.AutoExposureEVCompensation.GetValue()
+
+    def _get_Gamma(self):
+        return self.cam.Gamma.GetValue()
+
+    def _get_Width(self):
+        return self.cam.Width.GetValue()
+
+    def _get_Height(self):
+        return self.cam.Height.GetValue()
+
+    def _get_FrameRate(self):
+        return self.cam.AcquisitionFrameRate.GetValue()
+
+    def _get_Temperature(self):
+        return self.cam.DeviceTemperature.GetValue()
+
+    def _get_BackLight(self):
+        status = self.cam.DeviceIndicatorMode.GetValue()
+        return (
+            True
+            if status == PySpin.DeviceIndicatorMode_Active
+            else False
+            if status == PySpin.DeviceIndicatorMode_Inactive
+            else status
+        )
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-i", "--index", type=int, default=0, help="Camera index (Default: 0)"
+    )
+    parser.add_argument(
+        "-e",
+        "--exposure",
+        type=float,
+        default=-1,
+        help="Exposure time [us] (Default: Auto)",
+    )
+    parser.add_argument(
+        "-g", "--gain", type=float, default=-1, help="Gain [dB] (Default: Auto)"
+    )
+    parser.add_argument("-G", "--gamma", type=float, help="Gamma value")
+    parser.add_argument("-b", "--brightness", type=float, help="Brightness [EV]")
+    parser.add_argument("-f", "--fps", type=float, help="FrameRate [fps]")
+    parser.add_argument(
+        "-s",
+        "--scale",
+        type=float,
+        default=0.25,
+        help="Image scale to show (>0) (Default: 0.25)",
+    )
+    args = parser.parse_args()
+
+    cap = VideoCapture(args.index)
+
+    if not cap.isOpened():
+        print("Camera can't open\nexit")
+        return -1
+
+    cap.set(cv2.CAP_PROP_EXPOSURE, args.exposure)  # -1 sets exposure_time to auto
+    cap.set(cv2.CAP_PROP_GAIN, args.gain)  # -1 sets gain to auto
+    if args.gamma is not None:
+        cap.set(cv2.CAP_PROP_GAMMA, args.gamma)
+    if args.fps is not None:
+        cap.set(cv2.CAP_PROP_FPS, args.fps)
+    if args.brightness is not None:
+        cap.set(cv2.CAP_PROP_BRIGHTNESS, args.brightness)
+
+    while True:
+        ret, frame = cap.read()
+
+        exposureTime = cap.get(cv2.CAP_PROP_EXPOSURE)
+        gain = cap.get(cv2.CAP_PROP_GAIN)
+        print("exposureTime:", exposureTime)
+        print("gain        :", gain)
+        print("\033[2A", end="")
+
+        img_show = cv2.resize(frame, None, fx=args.scale, fy=args.scale)
+        cv2.imshow("capture", img_show)
+        key = cv2.waitKey(30)
+        if key == ord("q"):
+            break
+        elif key == ord("c"):
+            import datetime
+
+            time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            filepath = time_stamp + ".png"
+            cv2.imwrite(filepath, frame)
+            print("Export > ", filepath)
+
+    cv2.destroyAllWindows()
+    cap.release()
+
+
+if __name__ == "__main__":
+    main()
