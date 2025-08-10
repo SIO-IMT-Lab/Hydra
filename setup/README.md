@@ -39,4 +39,5 @@ By this point, you should have two terminal windows open (I'll call them Termina
 12b. Press Enter
 
 **NOTE: Step 13 is required regardless of whether you did steps 12a and 12b**
+
 13. Double-click on the icon labeled `LattePanda_BubbleCam`
