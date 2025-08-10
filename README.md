@@ -5,15 +5,14 @@ This repository contains software for the Scripps Institution of Oceanography IM
 ## Repository structure
 
 - `sensor-modules/` – all sensor and camera code
-- `experiment/` – prototype scripts exploring threading and pub/sub patterns
 - `system-outline/` – architectural notes and diagrams
+- `setup/` – setup instructions for the LattePandas
 
 ## Sensor-modules
 
-- Inheritance implementation => ~/sensor-modules/cameras
-- Composition implementation => ~/sensor-modules/compositions
+- Inheritance implementation => `~/sensor-modules/cameras`
+- Composition implementation => `~/sensor-modules/compositions`
 - Example tests can be found under the BubbleCam module
-- Implementation and testing docs => ~/sensor-modules/docs
 
 ## Remote SSH
 
