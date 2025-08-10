@@ -14,9 +14,7 @@ NOTE: The LattePanda will not boot without an HDMI connection.
 
 ## Setting up Remote Access to LattePanda
 
-Make sure the following software is installed before attempting remote access:
-
-- RealVNC viewer
+Make sure **RealVNC viewer** is installed before attempting remote access:
 
 1. Press Win+R and type `cmd` in the box if `cmd` is not already there
 2. Press Enter
