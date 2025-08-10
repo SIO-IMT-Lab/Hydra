@@ -35,6 +35,7 @@ By this point, you should have two terminal windows open (I'll call them Termina
 **NOTE: Steps 12a and 12b only apply if you do not see an icon labeled `LattePanda_BubbleCam` on the home screen of RealVNC Viewer. Otherwise, skip to step 13**
 
 12a. At the top of RealVNC Viewer, there is a box saying `Enter VNC address or search`. Click this box and type `192.168.100.1:5900`
+
 12b. Press Enter
 
 **NOTE: Step 13 is required regardless of whether you did steps 12a and 12b**
