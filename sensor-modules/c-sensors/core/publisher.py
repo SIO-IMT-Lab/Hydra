@@ -1,42 +1,59 @@
-class Publisher:
+import json
+from typing import Generic, Protocol, TypeVar
 
-    def __init__(self, msg_type, topic: str) -> None:
+import pika
+
+from message_types import SerializableMsg
+from server_connection import ServerConnection
+
+TMsg = TypeVar("TMsg", bound=SerializableMsg)
+
+class Publisher(Generic[TMsg]):
+
+    def __init__(self, 
+                 msg_type: type[TMsg], 
+                 exchange: str,
+                 channel: pika.channel.Channel
+    ) -> None:
         """
         Create a container for a publisher.
 
         .. warning:: Do not create a publisher with this constructor, instead
-           call :method:`.Node.create_publisher`.
+            call :method:`.Node.create_publisher`.
 
         A publisher is used as a primary means of communication by publishing
-        messages on a topic.
+        messages on an exchange.
 
         :param msg_type: The type of messages the publisher will publish.
-        :param topic: The name of the topic the publisher will publish to.
+        :param exchange: The name of the exchange the publisher will publish to.
         """
-        self.msg_type = msg_type
-        self.topic = topic
+        super().__init__(exchange, 'topic')
+        self._msg_type = msg_type
+        self._exchange = exchange 
+        self._channel = channel
 
-    def publish(msg):
+    def publish(self, msg: TMsg, routing_key: str) -> None:
         """
-        Send a message to the topic for the publisher.
+        Send a message to the exchange for the publisher.
 
         :param msg: The message to publish.
+        :param routing_key: Key that helps filter different messages. 
         :raises: TypeError if the type of the passed message isn't an instance
-          of the provided type when the publisher was constructed.
+            of the provided type when the publisher was constructed.
         """
+        if not isinstance(msg, self._msg_type):
+            raise TypeError(
+                f"Publisher expected {self._msg_type.__name__}, got {type(msg).__name__}"
+            )
 
-    def get_subscription_count(self) -> int:
-        """Get the amount of subscribers that this publisher has."""
-        with self.handle:
-            return self.__publisher.get_subscription_count()
+        body = json.dumps(msg.to_dict()).encode("utf-8")
+        self._channel.basic_publish(
+            exchange=self._exchange, routing_key=routing_key, body=body)
+        print("Worked")
 
     @property
-    def topic_name(self) -> str:
-        with self.handle:
-            return self.__publisher.get_topic_name()
-
-    @property
-    def logger_name(self) -> str:
-        """Get the name of the logger associated with the node of the publisher."""
-        with self.handle:
-            return self.__publisher.get_logger_name()
+    def exchange_name(self) -> str:
+        """
+        Name of the exchange this publisher publishes to.
+        """
+        return self._exchange 
