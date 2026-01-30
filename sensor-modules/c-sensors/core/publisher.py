@@ -13,7 +13,6 @@ class Publisher(Generic[TMsg]):
     def __init__(self, 
                  msg_type: type[TMsg], 
                  exchange: str,
-                 channel: pika.channel.Channel
     ) -> None:
         """
         Create a container for a publisher.
@@ -27,11 +26,13 @@ class Publisher(Generic[TMsg]):
         :param msg_type: The type of messages the publisher will publish.
         :param exchange: The name of the exchange the publisher will publish to.
         """
-        super().__init__(exchange, 'topic')
         self._msg_type = msg_type
-        self._exchange = exchange 
-        self._channel = channel
+        self._exchange = exchange
+        self._channel = None
 
+    def attach_channel(self, channel: pika.channel.Channel) -> None:
+        self._channel = channel
+    
     def publish(self, msg: TMsg, routing_key: str) -> None:
         """
         Send a message to the exchange for the publisher.
@@ -41,6 +42,10 @@ class Publisher(Generic[TMsg]):
         :raises: TypeError if the type of the passed message isn't an instance
             of the provided type when the publisher was constructed.
         """
+        if self._channel is None:
+            raise RuntimeError("Publisher not started. node.start() must be " +
+                               "called before publishing messages.")
+
         if not isinstance(msg, self._msg_type):
             raise TypeError(
                 f"Publisher expected {self._msg_type.__name__}, got {type(msg).__name__}"

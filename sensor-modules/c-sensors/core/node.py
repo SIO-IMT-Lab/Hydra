@@ -24,15 +24,29 @@ class Node:
         :param node_name: A name to give to this node.
         """
         self.node_name = node_name
-        self.is_started = asyncio.Event()
+        self.is_started = None
         self._server_connection = ServerConnection()
+        
+        self._publishers = []
+        self._subscribers = []
+        self._tasks = []
     
     # When I start I want to connect to the RabbitMQ Server
-    def start(self):
-        self.is_started.set()
+    async def start(self):
+        if self.is_started is None:
+            self.is_started = asyncio.Event()
+            
+        self._server_connection.connect()
+        
+        for publisher in self._publishers:
+            channel = await self._server_connection.create_channel(publisher.exchange_name)
+            publisher.attach_channel(channel)
 
-    def stop(self):
-        self.is_started.clear()
+        for subscriber in self._subscribers:
+            channel = await self._server_connection.create_channel(subscriber.exchange_name)
+            await subscriber.attach_channel(channel)
+            
+        self.is_started.set()
 
     def create_publisher(self, 
                          msg_type: type[TMsg], 
@@ -44,8 +58,9 @@ class Node:
         :param msg_type: The type of messages the publisher will publish.
         :param exchange: The name of the exchange the publisher will publish to.
         """
-        new_channel = self._server_connection.setup_channel(exchange)
-        return Publisher(msg_type, exchange, new_channel)
+        publisher = Publisher(msg_type, exchange)
+        self._publishers.append(publisher)
+        return publisher
 
     def create_subscription(self, 
                             msg_type: type[TMsg], 
@@ -60,8 +75,9 @@ class Node:
         :param callback: A user-defined callback function that is called when a
             message is received by the subscription.
         """
-        new_channel = self._server_connection.setup_channel(exchange)
-        return Subscriber(msg_type, exchange, user_callback, new_channel)
+        subscriber = Subscriber(msg_type, exchange, user_callback)
+        self._subscribers.append(subscriber)
+        return subscriber
 
     # TODO: Create a dedicated Timer class to return
     def create_timer(self, 
@@ -70,10 +86,9 @@ class Node:
     ):
         asyncio.create_task(self._timer_loop(timer_period, timer_callback))
 
-
     async def _timer_loop(self, 
-                         timer_period: float, 
-                         timer_callback: Callable[[], Awaitable[Any]]
+                          timer_period: float, 
+                          timer_callback: Callable[[], Awaitable[Any]]
     ):
         await self.is_started.wait()
         while self.is_started.is_set():

@@ -1,16 +1,15 @@
+import sys
 import asyncio
 
 from node import Node
 
 def spin(node: Node):
-    node.start()
-
     async def loop():
-        try:
-            while True:
-                await asyncio.sleep(0)
-        except KeyboardInterrupt:
-            sys.exit(130)
+        await node.start()
+        await asyncio.Event().wait() 
 
-    asyncio.run(loop())
+    try:
+        asyncio.run(loop())
+    except KeyboardInterrupt:
+        pass
     

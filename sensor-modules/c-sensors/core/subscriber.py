@@ -15,7 +15,6 @@ class Subscriber(Generic[TMsg]):
                  msg_type: type[TMsg], 
                  exchange: str, 
                  user_callback: Callable[[TMsg], Awaitable[Any]],  
-                 channel: pika.channel.Channel,
                  binding_keys: Sequence[str] = ['#']
     ) -> None:
         """
@@ -35,16 +34,19 @@ class Subscriber(Generic[TMsg]):
                              any of the ones in this list 
                              (default '#' receives all messages on the exchange).
         """
-        super().__init__(exchange, 'topic')
         self._msg_type = msg_type
         self._exchange = exchange 
         self._user_callback = user_callback
+        self._channel = None
+        self._binding_keys = binding_keys
+
+    async def attach_channel(self, channel: pika.channel.Channel) -> None:
         self._channel = channel
 
         result = self._channel.queue_declare('', exclusive=True)
         queue_name = result.method.queue
 
-        for binding_key in binding_keys:
+        for binding_key in self._binding_keys:
             self._channel.queue_bind(
                 exchange=self._exchange, 
                 queue=queue_name, 
@@ -72,8 +74,8 @@ class Subscriber(Generic[TMsg]):
     ) -> None:
         try:
             res_dict = json.loads(body.decode('utf-8'))
-            res_str = self._msg_type.from_dict(res_dict)
-            await self._user_callback(res_str)
+            res_msg = self._msg_type.from_dict(res_dict)
+            await self._user_callback(res_msg)
             channel.basic_ack(delivery_tag=delivery_tag)
         except Exception:
             channel.basic_nack(delivery_tag=delivery_tag, requeue=False)
