@@ -13,16 +13,42 @@ import datetime as dt
 import signal
 import sys
 from pathlib import Path
-
+import subprocess
+from datetime import datetime
 import RPi.GPIO as GPIO  # type: ignore
 import serial
 
 
-DEFAULT_DATA_DIR = Path("/home/pi/Desktop/IMT/gps_timestamps")
+DEFAULT_DATA_DIR = Path("/home/imt/Hydra/sensor-modules/c-sensors/gps/data")
 DEFAULT_GPIO_PIN = 16
-DEFAULT_SERIAL_PORT = "/dev/ttyACM0"
+DEFAULT_SERIAL_PORT = "/dev/serial0"
 DEFAULT_BAUDRATE = 9600
 
+
+def gps_to_datetime(time_str: str, date_str: str) -> datetime:
+    """
+    Convert GPS-style time/date strings to a datetime object.
+
+    time_str: "hhmmss.sss"
+    date_str: "ddmmyy"
+    """
+    hour = int(time_str[0:2])
+    minute = int(time_str[2:4])
+    second = int(time_str[4:6])
+    microsecond = int(float("0." + time_str[7:]) * 1_000_000) if "." in time_str else 0
+
+    day = int(date_str[0:2])
+    month = int(date_str[2:4])
+    year = int(date_str[4:6]) + 2000  # GPS dates are 2000+
+
+    return datetime(year, month, day, hour, minute, second, microsecond)
+
+def set_system_time_from_gps(time_str, date_str):
+    dt = gps_to_datetime(time_str, date_str)
+    subprocess.run(
+        ["sudo", "date", "-s", dt.strftime("%Y-%m-%d %H:%M:%S")],
+        check=True
+    )
 
 def parse_args() -> argparse.Namespace:
     """Return command line arguments."""
@@ -73,6 +99,9 @@ def process_uart_char(ser: serial.Serial, log_file, buffer: str) -> str:
     if char == "\n":
         buffer += char
         if "$GPRMC" in buffer:
+            items = buffer.split(',')
+            time_str, date_str = items[1], items[9]
+            set_system_time_from_gps(time_str, date_str)
             log_file.write(buffer)
             log_file.flush()
         return ""
