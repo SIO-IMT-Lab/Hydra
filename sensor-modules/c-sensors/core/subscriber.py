@@ -43,8 +43,16 @@ class Subscriber(Generic[TMsg]):
     async def attach_channel(self, channel: pika.channel.Channel) -> None:
         self._channel = channel
 
-        result = self._channel.queue_declare('', exclusive=True)
-        queue_name = result.method.queue
+        loop = asyncio.get_running_loop()
+
+        queue_future = loop.create_future()
+        def on_queue_declared(frame: pika.frame.Method):
+            if not queue_future.done():
+                queue_future.set_result(frame.method.queue)
+        self._channel.queue_declare(queue='', 
+                                    exclusive=True,
+                                    callback=on_queue_declared)
+        queue_name = await queue_future
 
         for binding_key in self._binding_keys:
             self._channel.queue_bind(

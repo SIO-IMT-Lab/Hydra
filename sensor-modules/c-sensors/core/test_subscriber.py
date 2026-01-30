@@ -1,3 +1,7 @@
+from node import Node
+from message_types import String
+from launch import spin
+
 class TestSubscriber(Node):
 
     def __init__(self):
@@ -11,6 +15,7 @@ class TestSubscriber(Node):
 
 def main(args=None):
     minimal_subscriber = TestSubscriber()
+    spin(minimal_subscriber)
 
 if __name__ == '__main__':
     main()

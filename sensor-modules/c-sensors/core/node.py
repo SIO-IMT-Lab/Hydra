@@ -29,7 +29,7 @@ class Node:
         
         self._publishers = []
         self._subscribers = []
-        self._tasks = []
+        self._timers = []
     
     # When I start I want to connect to the RabbitMQ Server
     async def start(self):
@@ -45,6 +45,9 @@ class Node:
         for subscriber in self._subscribers:
             channel = await self._server_connection.create_channel(subscriber.exchange_name)
             await subscriber.attach_channel(channel)
+            
+        for timer_period, timer_callback in self._timers:
+            asyncio.create_task(self._timer_loop(timer_period, timer_callback))
             
         self.is_started.set()
 
@@ -84,7 +87,7 @@ class Node:
                      timer_period: float, 
                      timer_callback: Callable[[], Awaitable[Any]]
     ):
-        asyncio.create_task(self._timer_loop(timer_period, timer_callback))
+        self._timers.append((timer_period, timer_callback))
 
     async def _timer_loop(self, 
                           timer_period: float, 
@@ -94,7 +97,3 @@ class Node:
         while self.is_started.is_set():
             await asyncio.sleep(timer_period)
             await timer_callback()
-
-
-        
-

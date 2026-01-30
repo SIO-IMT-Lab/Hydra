@@ -9,10 +9,10 @@ class TestPublisher(Node):
     def __init__(self):
         super().__init__("test_publisher")
         self.publisher = self.create_publisher(String, 'test')
-        self.create_timer(1.0, self.test_publish)
+        self.create_timer(5.0, self.test_publish)
 
     async def test_publish(self):
-        msg = String(data="Hello World")
+        msg = String(data="Did it work?")
         self.publisher.publish(msg, "test")
 
 def main(args=None):
