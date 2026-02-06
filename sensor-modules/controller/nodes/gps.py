@@ -1,3 +1,4 @@
+import asyncio
 import serial_asyncio
 
 from core.node import Node 
@@ -18,8 +19,11 @@ class GPS(Node):
         self.create_task(self.test_publish)
 
     async def test_publish(self):
+        # Note that open_serial_connection is a wrapper for 
+        # create_serial_connection() which is a coroutine. Calls 
+        # asyncio.get_event_loop() under the hood.
         reader, writer = await serial_asyncio.open_serial_connection(
-            url=DEFAULT_SERIAL_PORT,
+            port=DEFAULT_SERIAL_PORT,
             baudrate=DEFAULT_BAUDRATE
         )
 

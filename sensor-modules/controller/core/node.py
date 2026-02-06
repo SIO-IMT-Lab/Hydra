@@ -24,18 +24,17 @@ class Node:
         :param node_name: A name to give to this node.
         """
         self.node_name = node_name
-        self.is_started = None
+        self.is_started = asyncio.Event()
         self._server_connection = ServerConnection()
         
         self._publishers = []
         self._subscribers = []
+        
+        self.pending_tasks = []
         self._tasks = []
     
     # When I start I want to connect to the RabbitMQ Server
     async def start(self):
-        if self.is_started is None:
-            self.is_started = asyncio.Event()
-            
         self._server_connection.connect()
         
         for publisher in self._publishers:
@@ -45,7 +44,10 @@ class Node:
         for subscriber in self._subscribers:
             channel = await self._server_connection.create_channel(subscriber.exchange_name)
             await subscriber.attach_channel(channel)
-            
+        
+        for task in self.pending_tasks:
+            self._tasks.append(asyncio.create_task(task))
+                    
         self.is_started.set()
 
     def create_publisher(self, 
@@ -87,14 +89,17 @@ class Node:
         
         :param task_callback: Description
         """
-        self._tasks.append(asyncio.create_task(task_callback()))
+        if not self.is_started.is_set():
+            self.pending_tasks.append(task_callback)
+        else:
+            self._tasks.append(asyncio.create_task(task_callback()))
 
     # TODO: Create and return a dedicated Timer class
     def create_timer(self, 
                      timer_period: float, 
                      timer_callback: Callable[[], Awaitable[Any]]
     ):
-        self.create_task(self._timer_loop(timer_period, timer_callback))
+        self.create_task(lambda: self._timer_loop(timer_period, timer_callback))
 
     async def _timer_loop(self, 
                           timer_period: float, 
