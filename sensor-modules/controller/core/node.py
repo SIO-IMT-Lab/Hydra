@@ -1,11 +1,11 @@
-from typing import Any, Callable, TypeVar, Awaitable
+from typing import Any, Callable, TypeVar, Awaitable, Sequence
 import asyncio
 
-from server_connection import ServerConnection
-from publisher import Publisher
-from subscriber import Subscriber
-from timer import Timer 
-from message_types import SerializableMsg
+from .server_connection import ServerConnection
+from .publisher import Publisher
+from .subscriber import Subscriber
+# from timer import Timer 
+from .message_types import SerializableMsg
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
 
@@ -46,7 +46,8 @@ class Node:
             await subscriber.attach_channel(channel)
         
         for task in self.pending_tasks:
-            self._tasks.append(asyncio.create_task(task))
+            self._tasks.append(asyncio.create_task(task()))
+        self.pending_tasks.clear()
                     
         self.is_started.set()
 
@@ -67,7 +68,8 @@ class Node:
     def create_subscription(self, 
                             msg_type: type[TMsg], 
                             exchange: str, 
-                            user_callback: Callable[[TMsg], Awaitable[Any]]
+                            user_callback: Callable[[TMsg], Awaitable[Any]],
+                            binding_keys: Sequence[str]
     ) -> Subscriber:
         """
         Create a new subscription.
@@ -77,7 +79,7 @@ class Node:
         :param callback: A user-defined callback function that is called when a
             message is received by the subscription.
         """
-        subscriber = Subscriber(msg_type, exchange, user_callback)
+        subscriber = Subscriber(msg_type, exchange, user_callback, binding_keys)
         self._subscribers.append(subscriber)
         return subscriber
 
@@ -107,5 +109,5 @@ class Node:
     ):
         await self.is_started.wait()
         while self.is_started.is_set():
-            await asyncio.sleep(timer_period)
             await timer_callback()
+            await asyncio.sleep(timer_period)

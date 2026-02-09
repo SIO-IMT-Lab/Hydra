@@ -3,7 +3,7 @@ import serial_asyncio
 
 from core.node import Node 
 from core.message_types import String
-from launch import spin
+from core.launch import spin
 
 # TODO: Put these in a dedicated config file or something
 DEFAULT_GPIO_PIN = 16
@@ -16,23 +16,34 @@ class GPS(Node):
         super().__init__("gps")
         # TODO: Anything else we need to publish?
         self.time_publisher = self.create_publisher(String, 'time')        
-        self.create_task(self.test_publish)
+        self.date_publisher = self.create_publisher(String, 'date')        
+        self.create_task(self.publish_gps)
 
-    async def test_publish(self):
+    async def publish_gps(self):
         # Note that open_serial_connection is a wrapper for 
         # create_serial_connection() which is a coroutine. Calls 
-        # asyncio.get_event_loop() under the hood.
+        # asyncio.get_event_loop() under the hood. The documenation
+        # says the params are the same as Serial() but you need to
+        # pass it in as url.
         reader, writer = await serial_asyncio.open_serial_connection(
-            port=DEFAULT_SERIAL_PORT,
+            url=DEFAULT_SERIAL_PORT,
             baudrate=DEFAULT_BAUDRATE
         )
 
         while True:
-            line = await reader.readline()
-            line = line.decode(errors="ignore").strip()
+            raw_data = await reader.readline()
+            line = raw_data.decode(errors="ignore").strip()
+            # TODO: Perhaps put this "$GPRMC param in the config"
             if "$GPRMC" in line:
-                msg = String(data=line)
+                # TODO: Come up with better variable names 
+                items = line.split(",")
+                time, date = items[1], items[9]
+
+                msg = String(data=time)
                 self.time_publisher.publish(msg, "gps_time")
+                
+                msg2 = String(data=date)
+                self.time_publisher.publish(msg2, "gps_date")
         
 def main(args=None):
     gps = GPS()

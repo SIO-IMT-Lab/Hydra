@@ -3,8 +3,8 @@ from typing import Generic, Protocol, TypeVar
 
 import pika
 
-from message_types import SerializableMsg
-from server_connection import ServerConnection
+from .message_types import SerializableMsg
+from .server_connection import ServerConnection
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
 
@@ -54,7 +54,6 @@ class Publisher(Generic[TMsg]):
         body = json.dumps(msg.to_dict()).encode("utf-8")
         self._channel.basic_publish(
             exchange=self._exchange, routing_key=routing_key, body=body)
-        print("Worked")
 
     @property
     def exchange_name(self) -> str:

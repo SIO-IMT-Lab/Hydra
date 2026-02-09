@@ -1,6 +1,6 @@
-from node import Node 
-from message_types import String
-from launch import spin
+from .node import Node 
+from .message_types import String
+from .launch import spin
 
 class TestPublisher(Node):
 

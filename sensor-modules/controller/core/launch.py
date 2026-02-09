@@ -1,7 +1,7 @@
 import sys
 import asyncio
 
-from node import Node
+from .node import Node
 
 def spin(node: Node):
     async def loop():
