@@ -56,6 +56,7 @@ class Sita:
         self.ser.write(STOP)
         time.sleep(0.2)
 
+
     def take_measurement(self) -> str | None:
         """Return a single measurement string or ``None`` if timed out."""
         start = time.time()
@@ -64,15 +65,18 @@ class Sita:
             time.sleep(0.04)
             if self.ser.in_waiting:
                 line = self.ser.readline().decode("utf-8", errors="ignore").strip()
+                # print("Valid str", line)
                 if len(line) > 20:
                     return line
             if time.time() - start > self.measure_time_limit:
+                print("Invalid str")
                 return None
 
 
 DEFAULT_PORT = "/dev/ttyUSB4"
 DEFAULT_BAUDRATE = 57600
-DEFAULT_INTERVAL = 30 * 60  # seconds
+# DEFAULT_INTERVAL = 30 * 60  # seconds
+DEFAULT_INTERVAL = 3  # seconds
 DEFAULT_OUTPUT = Path("sita_log.txt")
 DEFAULT_TIMEOUT = 1.0
 DEFAULT_MEASURE_LIMIT = 20.0
@@ -100,11 +104,21 @@ def main() -> None:
     with Sita(args.port, args.baudrate, args.timeout,
               args.measure_time_limit) as sita, open(args.output, "a") as f:
         try:
+            sita.ser.write(POWER_UP)
+            time.sleep(1)
             while True:
-                sita.power_on()
+                # sita.power_on()
+                sita.ser.write(NO_CAL)
+                time.sleep(3)
+                sita.ser.write(SAMPLE)
+                time.sleep(1)
+
                 line = sita.take_measurement()
-                sita.power_off()
-                timestamp = dt.datetime.utcnow().isoformat()
+                sita.ser.write(STOP)
+                time.sleep(0.2)
+                # sita.power_off()
+                # timestamp = dt.datetime.utcnow().isoformat()
+                timestamp = dt.datetime.now(dt.UTC)
                 if line:
                     f.write(f"{timestamp} {line}\n")
                     f.flush()
@@ -115,6 +129,7 @@ def main() -> None:
                     print("SITA measurement timeout")
                 time.sleep(args.interval)
         except KeyboardInterrupt:
+            sita.power_off()
             pass
 
 
