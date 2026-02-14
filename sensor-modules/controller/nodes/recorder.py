@@ -1,37 +1,37 @@
-import argparse
-from typing import Sequence
-
 from core.node import Node
 from core.message_types import String
 from core.launch import spin
 
 class Recorder(Node):
-
     def __init__(self):
-        super().__init__('recorder')
-        self.time_subscriber = self.create_subscription(
-                msg_type=String, 
-                exchange="time",
-                user_callback=self.recorder_callback,
-                binding_keys=['#']
-        )
-        self.conductivity_subscriber = self.create_subscription(
-                msg_type=String, 
-                exchange="conductivity",
-                user_callback=self.recorder_callback,
-                binding_keys=['#']
-        )
+        super().__init__("recorder")
 
-    def recorder_callback(self, msg):
-        # TODO: Log the data into a 
-        print(f"I heard: {msg.data}")
-        # self.get_logger().info('I heard: "%s"' % msg.data)
+        self._subs = []
 
+        exchanges = [
+            ("conductivity", String),
+            ("sita", String),
+            ("gps", Time),
+        ]
 
-def main(args=None):
-    recorder = Recorder()
-    spin(recorder)
+        for exchange, msg_type in exchanges:
+            sub = self.create_subscription(
+                msg_type=msg_type,
+                exchange=exchange,
+                user_callback=self._make_callback(exchange),
+                binding_keys=["#"],
+            )
+            self._subs.append(sub)
 
-if __name__ == '__main__':
+    def _make_callback(self, exchange: str):
+        def _cb(msg):
+            print(f"[{exchange}] {msg.data}")
+        return _cb
+
+def main():
+    node = Recorder()
+    spin(node)
+
+if __name__ == "__main__":
     main()
 

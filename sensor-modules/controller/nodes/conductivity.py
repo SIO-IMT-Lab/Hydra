@@ -29,6 +29,9 @@ class Conductivity(Node):
             baudrate=DEFAULT_BAUDRATE
         )
 
+        # TODO: This will only work if the conductivity is originally NOT streaming data.
+        #       You need to make it more robust so that it can start streaming regardless
+        #       of its original state
         writer.write(b"SC\r\n")
         await writer.drain()
 
