@@ -73,7 +73,7 @@ class Sita:
                 return None
 
 
-DEFAULT_PORT = "/dev/ttyUSB4"
+DEFAULT_PORT = "/dev/ttyUSB0"
 DEFAULT_BAUDRATE = 57600
 # DEFAULT_INTERVAL = 30 * 60  # seconds
 DEFAULT_INTERVAL = 3  # seconds
