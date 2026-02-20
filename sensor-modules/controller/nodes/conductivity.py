@@ -7,7 +7,7 @@ from core.launch import spin
 
 # TODO: Put these in a dedicated config file or something
 # TODO: /dev/USB0 could change, may need a script to scan connected USBs
-DEFAULT_SERIAL_PORT = "/dev/ttyUSB1"
+DEFAULT_SERIAL_PORT = "/dev/ttyUSB2"
 DEFAULT_BAUDRATE = 9600
 
 class Conductivity(Node):
@@ -32,18 +32,19 @@ class Conductivity(Node):
         # TODO: This will only work if the conductivity is originally NOT streaming data.
         #       You need to make it more robust so that it can start streaming regardless
         #       of its original state
-        writer.write(b"SC\r\n")
-        await writer.drain()
+        # writer.write(b"SC\r\n")
+        # await writer.drain()
 
         try:
             while True:
                 line = await reader.readline()
                 line = line.decode(errors="ignore").strip()
+                print(line)
                 msg = String(data=line)
                 self.conductivity_publisher.publish(msg, "conductivity")
         except asyncio.CancelledError:
             try:
-                writer.write(b"SC\r\n")
+                # writer.write(b"SC\r\n")
                 await writer.drain()
             except Exception:
                 pass

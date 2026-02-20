@@ -1,3 +1,5 @@
+import RPi.GPIO as GPIO
+
 import asyncio
 import serial_asyncio
 
@@ -19,6 +21,8 @@ DEFAULT_BAUDRATE = 57600
 DEFAULT_INTERVAL = 3  # seconds
 DEFAULT_TIMEOUT = 1.0
 DEFAULT_MEASURE_LIMIT = 20.0
+
+ENABLE_PIN = 4
 
 class SITA(Node):
     
@@ -49,6 +53,10 @@ class SITA(Node):
 
         writer.write(POWER_UP)
         await writer.drain()
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(ENABLE_PIN, GPIO.OUT)
+        GPIO.output(ENABLE_PIN, GPIO.HIGH)
 
         try:
             while True:
