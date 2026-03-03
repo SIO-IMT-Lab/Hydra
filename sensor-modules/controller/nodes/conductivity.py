@@ -19,21 +19,10 @@ class Conductivity(Node):
         self.create_task(self.publish_conductivity)
 
     async def publish_conductivity(self):
-        # Note that open_serial_connection is a wrapper for 
-        # create_serial_connection() which is a coroutine. Calls 
-        # asyncio.get_event_loop() under the hood. The documenation
-        # says the params are the same as Serial() but you need to
-        # pass it in as url.
         reader, writer = await serial_asyncio.open_serial_connection(
             url=DEFAULT_SERIAL_PORT,
             baudrate=DEFAULT_BAUDRATE
         )
-
-        # TODO: This will only work if the conductivity is originally NOT streaming data.
-        #       You need to make it more robust so that it can start streaming regardless
-        #       of its original state
-        # writer.write(b"SC\r\n")
-        # await writer.drain()
 
         try:
             while True:
@@ -44,7 +33,6 @@ class Conductivity(Node):
                 self.conductivity_publisher.publish(msg, "conductivity")
         except asyncio.CancelledError:
             try:
-                # writer.write(b"SC\r\n")
                 await writer.drain()
             except Exception:
                 pass
