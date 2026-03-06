@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import asyncio
 import aiofiles
 from pathlib import Path
@@ -5,6 +7,7 @@ from pathlib import Path
 from core.node import Node
 from core.message_types import String
 from core.launch import spin
+
 
 DATA_DIRECTORY = "hydra_data"
 DATA_DIRECTORY_PATH = Path.home() / DATA_DIRECTORY
@@ -32,6 +35,11 @@ class Recorder(Node):
             
     def recorder_callback_factory(self, exchange: str):
         async def callback(msg):
+            # TODO: For testing I'll use a .txt but better to use .csv
+            #       so it's easier to parse later on
+            precise_datetime_utc = datetime.now(timezone.utc)
+            precise_time_str = precise_datetime_utc.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
+            print(precise_time_str)
             await self.write_to_file(f"{exchange}_data.txt", msg.data)
 
         return callback
@@ -43,7 +51,8 @@ class Recorder(Node):
             file_path = DATA_DIRECTORY_PATH / filename
             async with aiofiles.open(file_path, mode='a') as f:
                 await f.write(data)
-            print(f"Successfully wrote {data} to {filename}")
+            # TODO: When we get a proper logging module make this [INFO]
+            # print(f"Successfully wrote {data} to {filename}")
         except Exception as e:
             print(f"An error occurred: {e}")
 
