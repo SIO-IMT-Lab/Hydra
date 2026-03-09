@@ -10,7 +10,7 @@ constexpr uint8_t STATUS_PIN = 1; // Sample State = HIGH (Green LED), Flush Stat
 constexpr uint8_t FLUSH_PIN = 5;  // HIGH = flushing motor active
 constexpr uint8_t SAMPLE_PIN = 6; // HIGH = sampling motor active
 constexpr uint8_t VALVE_PIN = 9;  // HIGH = allow air in
-constexpr uint8_t ON_PIN = 13;    // LOW = off, HIGH = on
+constexpr uint8_t ON_PIN = 13;    // LOW = APC On, HIGH = APC Off
 
 // Seawater switch (SWSW) pins
 constexpr uint8_t SWSW_POWER_1 = 11;
@@ -22,9 +22,10 @@ constexpr uint8_t SWSW_DATA_2 = A2;
 constexpr unsigned long WET_ENTRY_DELAY_MS = 2000;
 constexpr unsigned long WET_RECHECK_DELAY_MS = 3000;
 constexpr unsigned long DRY_CONFIRM_DELAY_MS = 500;
+constexpr unsigned long WET_LOOP_DELAY_MS = 10;
+constexpr unsigned long DRY_LOOP_DELAY_MS = 10;
 constexpr unsigned long SWSW_DISCHARGE_DELAY_MS = 1;
 constexpr unsigned long SWSW_SAMPLE_DELAY_MS = 1;
-constexpr unsigned long DRY_LOOP_DELAY_MS = 1;
 
 // Thresholds
 constexpr int SWSW_THRESHOLD = 150;
@@ -70,8 +71,9 @@ void handleWetCondition()
     do
     {
       digitalWrite(FLUSH_PIN, LOW);
-      delay(WET_RECHECK_DELAY_MS);
+      delay(WET_LOOP_DELAY_MS);
     } while (isWet());
+    delay(WET_RECHECK_DELAY_MS);
 
     // Briefly switch flush state, then re-check for wetness
     digitalWrite(FLUSH_PIN, HIGH);
@@ -120,7 +122,7 @@ void setWetModeBase()
   digitalWrite(STATUS_PIN, LOW);
   digitalWrite(SAMPLE_PIN, LOW);
   digitalWrite(VALVE_PIN, HIGH);
-  digitalWrite(ON_PIN, HIGH);
+  digitalWrite(ON_PIN, LOW); // APC always be on
 }
 
 void setDryMode()
