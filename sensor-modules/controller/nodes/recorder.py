@@ -9,8 +9,8 @@ from core.message_types import String
 from core.launch import spin
 
 
-DATA_DIRECTORY = "hydra_data"
-DATA_DIRECTORY_PATH = Path.home() / DATA_DIRECTORY
+DATA_DIRECTORY = "/mnt/hydra_data"
+DATA_DIRECTORY_PATH = Path(DATA_DIRECTORY) 
 DATA_DIRECTORY_PATH.mkdir(parents=True, exist_ok=True)
 
 class Recorder(Node):
@@ -32,23 +32,28 @@ class Recorder(Node):
                 binding_keys=["#"],
             )
             self.subscriptions.append(sub)
-            
+
     def recorder_callback_factory(self, exchange: str):
+        filename = f"{exchange}_data.csv"
+        file_path = DATA_DIRECTORY_PATH / filename
+
         async def callback(msg):
-            # TODO: For testing I'll use a .txt but better to use .csv
-            #       so it's easier to parse later on
             precise_datetime_utc = datetime.now(timezone.utc)
             precise_time_str = precise_datetime_utc.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
-            print(precise_time_str)
-            await self.write_to_file(f"{exchange}_data.txt", msg.data)
 
-        return callback
-    
+            line = f"{precise_time_str},{msg.data}\n"
+
+            if not file_path.exists():
+                await self.write_to_file(file_path, "timestamp,value\n")
+
+            await self.write_to_file(file_path, line)
+
+        return callback           
+
     # TODO: Move this into another utility module or something, since we'll
     #       probably want to use it in other places too
-    async def write_to_file(self, filename: str, data: str):
+    async def write_to_file(self, file_path: Path, data: str):
         try:
-            file_path = DATA_DIRECTORY_PATH / filename
             async with aiofiles.open(file_path, mode='a') as f:
                 await f.write(data)
             # TODO: When we get a proper logging module make this [INFO]
