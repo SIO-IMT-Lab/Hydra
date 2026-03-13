@@ -10,7 +10,7 @@ from core.launch import spin
 DEFAULT_SERIAL_PORT = "/dev/ttyUSB2"
 DEFAULT_BAUDRATE = 9600
 
-class Conductivity(Node):
+class APC(Node):
     
     def __init__(self):
         super().__init__("apc")
@@ -28,7 +28,6 @@ class Conductivity(Node):
             while True:
                 line = await reader.readline()
                 line = line.decode(errors="ignore").strip()
-                print(line)
                 msg = String(data=line)
                 self.apc_publisher.publish(msg, "apc")
         except asyncio.CancelledError:
@@ -45,7 +44,7 @@ class Conductivity(Node):
                 pass
         
 def main(args=None):
-    apc = Conductivity()
+    apc = APC()
     spin(apc)
 
 if __name__ == '__main__':
