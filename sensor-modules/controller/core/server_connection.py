@@ -31,15 +31,16 @@ class ServerConnection:
         After the RabbitMQ connection is established, set flag to indicate we
         can now create channels.
         """
+        print("CONNECTION OPENED")
         self.is_connected.set()
 
     # TODO : Create proper connection error handling
     def on_connection_open_error(self, _unused_connection, err):
-        print(err)
+        print(f"CONNECTION OPEN ERROR: {err!r}")
 
     # TODO : Create proper connection close handling
     def on_connection_closed(self, _unused_connection, reason):
-        print(reason)
+        print(f"CONNECTION OPEN CLOSED: {reason!r}")
 
     async def create_channel(self, exchange_name):
         await self.is_connected.wait()

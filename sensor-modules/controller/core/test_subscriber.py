@@ -7,7 +7,8 @@ from .launch import spin
 
 class TestSubscriber(Node):
 
-    def __init__(self, exchange: str, binding_keys: Sequence[str]):
+    def __init__(self, exchange: str = "test", 
+                       binding_keys: Sequence[str] = ['#']):
         super().__init__('test_subscriber')
         self.subscription = self.create_subscription(
                 msg_type=String, 
@@ -16,7 +17,7 @@ class TestSubscriber(Node):
                 binding_keys=binding_keys
         )
 
-    def listener_callback(self, msg):
+    async def listener_callback(self, msg):
         print(f"I heard: {msg.data}")
         # self.get_logger().info('I heard: "%s"' % msg.data)
 
