@@ -17,13 +17,15 @@ class Node:
     It can be used to create entities such as publishers, subscribers, 
     services, and clients.
     """
-    def __init__(self, node_name: str) -> None:
+    def __init__(self, node_name: str, config: dict) -> None:
         """
         Create a Node.
 
         :param node_name: A name to give to this node.
+        :param config: A dictionary containing the node's configuration.
         """
         self.node_name = node_name
+        self.config = config.get(node_name, {})
         self.is_started = asyncio.Event()
         self._server_connection = ServerConnection()
         
@@ -50,6 +52,8 @@ class Node:
         self.pending_tasks.clear()
                     
         self.is_started.set()
+    
+    
 
     def create_publisher(self, 
                          msg_type: type[TMsg], 
