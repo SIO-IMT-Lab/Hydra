@@ -25,7 +25,8 @@ class Node:
         :param config: A dictionary containing the node's configuration.
         """
         self.node_name = node_name
-        self.config = config.get(node_name, {})
+        self.exchanges = config.get("exchanges", {})
+        self.config = config.get("nodes", {}).get(node_name, {})
         self.is_started = asyncio.Event()
         self._server_connection = ServerConnection()
         

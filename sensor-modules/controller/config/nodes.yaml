@@ -1,0 +1,27 @@
+exchanges:
+  conductivity: "conductivity"
+  apc: "apc"
+  sita: "sita"
+
+nodes:
+  conductivity:
+    serial_port: "/dev/ttyUSB1"
+    baudrate: 9600
+    publish_exchange: "conductivity"
+
+  # apc:
+  #   serial_port: "/dev/ttyUSB2"
+  #   baudrate: 19200
+  #   publish_exchange: "apc"
+
+  # sita:
+  #   serial_port: "/dev/ttyUSB2"
+  #   baudrate: 19200
+  #   publish_exchange: "sita"
+
+  # recorder:
+  #   output_dir: "/home/pi/hydra_data"
+  #   subscribe_exchanges:
+  #     - "conductivity"
+  #     - "apc"
+  #     - "sita"
