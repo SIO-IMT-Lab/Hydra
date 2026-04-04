@@ -5,44 +5,36 @@ import aiofiles
 from pathlib import Path
 
 from core.node import Node
-from core.message_types import String
-from core.launch import spin
+from core.message_types import get_message_class, SensorData
 
-
-DATA_DIRECTORY = "/mnt/hydra_data"
-DATA_DIRECTORY_PATH = Path(DATA_DIRECTORY) 
-DATA_DIRECTORY_PATH.mkdir(parents=True, exist_ok=True)
 
 class Recorder(Node):
-    def __init__(self):
-        super().__init__("recorder")
+    def __init__(self, config: dict):
+        super().__init__("recorder", config)
+        self.output_dir = Path(self.config.get("output_dir", "/mnt/hydra_data"))
+
         self.subscriptions = []
-
-        exchanges = [
-            ("conductivity", String),
-            ("sita", String),
-            ("apc", String),
-        ]
-
-        for exchange, msg_type in exchanges:
+        exchange_keys = self.config.get("subscribe_exchanges", [])
+        for key in exchange_keys:
+            exchange_cfg = self.exchanges.get(key, key)
+            exchange_name = exchange_cfg.get("name")
+            message_type_cls = get_message_class(exchange_cfg.get("message_type"))
             sub = self.create_subscription(
-                msg_type=msg_type,
-                exchange=exchange,
-                user_callback=self.recorder_callback_factory(exchange),
+                msg_type=message_type_cls,
+                exchange=exchange_name,
+                user_callback=self.recorder_callback_factory(exchange_name),
                 binding_keys=["#"],
             )
             self.subscriptions.append(sub)
 
     def recorder_callback_factory(self, exchange: str):
         filename = f"{exchange}_data.csv"
-        file_path = DATA_DIRECTORY_PATH / filename
+        file_path = self.output_dir / filename
 
         async def callback(msg):
-            precise_datetime_utc = datetime.now(timezone.utc)
-            precise_time_str = precise_datetime_utc.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
+            line = f"{msg.timestamp},{msg.data}\n"
 
-            line = f"{precise_time_str},{msg.data}\n"
-
+            print(line)
             if not file_path.exists():
                 await self.write_to_file(file_path, "timestamp,value\n")
 
@@ -60,11 +52,4 @@ class Recorder(Node):
             # print(f"Successfully wrote {data} to {filename}")
         except Exception as e:
             print(f"An error occurred: {e}")
-
-def main():
-    node = Recorder()
-    spin(node)
-
-if __name__ == "__main__":
-    main()
 

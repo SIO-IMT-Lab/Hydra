@@ -9,7 +9,7 @@ from nodes.sita import SITA
 def main(args=None):
     config = load_config("config/nodes.yaml")
     nodes = [
-        APC(config),
+        # APC(config),
         Conductivity(config),
         Recorder(config),
         # SITA(config)

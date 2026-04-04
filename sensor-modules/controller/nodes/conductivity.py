@@ -12,8 +12,9 @@ class Conductivity(Node):
         self.serial_port = self.config.get("serial_port", "/dev/ttyUSB1")
         self.baudrate = self.config.get("baudrate", 9600)
         exchange_key = self.config.get("publish_exchange", "conductivity")
-        self.exchange_name = self.exchanges.get(exchange_key, exchange_key)
-        
+        exchange_cfg = self.exchanges.get(exchange_key, {})
+        self.exchange_name = exchange_cfg.get("name", exchange_key)
+
         self.conductivity_publisher = self.create_publisher(SensorData, self.exchange_name) 
         self.create_task(self.publish_conductivity)
 
@@ -26,10 +27,9 @@ class Conductivity(Node):
         try:
             while True:
                 raw_data = await reader.readline()
-                timestamp = Time.now()
+                timestamp = Time.now() # Want the time right when the bytes arrive
                 data = raw_data.decode(errors="ignore").strip()
                 msg = SensorData(data=data, timestamp=timestamp)
-                print(f"Data: {msg.to_dict()["data"]}, Timestamp: {msg.to_dict()["timestamp"]}")
                 self.conductivity_publisher.publish(msg, self.exchange_name)
         finally:
             writer.close()

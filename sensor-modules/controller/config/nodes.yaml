@@ -1,7 +1,15 @@
 exchanges:
-  conductivity: "conductivity"
-  apc: "apc"
-  sita: "sita"
+  conductivity:
+    name: "conductivity"
+    message_type: "SensorData"
+
+  apc:
+    name: "apc"
+    message_type: "SensorData"
+
+  sita:
+    name: "sita"
+    message_type: "SensorData"
 
 nodes:
   conductivity:
@@ -19,9 +27,9 @@ nodes:
   #   baudrate: 19200
   #   publish_exchange: "sita"
 
-  # recorder:
-  #   output_dir: "/home/pi/hydra_data"
-  #   subscribe_exchanges:
-  #     - "conductivity"
-  #     - "apc"
-  #     - "sita"
+  recorder:
+    output_dir: "/mnt/hydra_data"
+    subscribe_exchanges:
+      - "conductivity"
+      # - "apc"
+      # - "sita"

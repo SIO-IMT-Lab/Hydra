@@ -116,3 +116,12 @@ class SensorData:
 #         )
 #
 #
+MESSAGE_TYPE_REGISTRY = {
+    "String": String,
+    "Time": Time,
+    "SensorData": SensorData,
+}
+
+def get_message_class(message_type: str):
+    return MESSAGE_TYPE_REGISTRY.get(message_type, String)
+
