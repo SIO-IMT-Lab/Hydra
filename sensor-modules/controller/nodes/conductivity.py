@@ -27,8 +27,9 @@ class Conductivity(Node):
             while True:
                 raw_data = await reader.readline()
                 timestamp = Time.now()
-                data = float(raw_data.decode(errors="ignore").strip())
+                data = raw_data.decode(errors="ignore").strip()
                 msg = SensorData(data=data, timestamp=timestamp)
+                print(f"Data: {msg.to_dict()["data"]}, Timestamp: {msg.to_dict()["timestamp"]}")
                 self.conductivity_publisher.publish(msg, self.exchange_name)
         finally:
             writer.close()

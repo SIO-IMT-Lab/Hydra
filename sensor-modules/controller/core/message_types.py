@@ -62,7 +62,7 @@ class Time:
 
 @dataclass(slots=True)
 class SensorData:
-    data: float
+    data: str
     timestamp: Time
 
     def to_dict(self) -> dict[str, Any]:
