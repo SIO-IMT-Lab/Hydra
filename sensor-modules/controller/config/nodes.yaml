@@ -17,10 +17,10 @@ nodes:
     baudrate: 9600
     publish_exchange: "conductivity"
 
-  # apc:
-  #   serial_port: "/dev/ttyUSB2"
-  #   baudrate: 19200
-  #   publish_exchange: "apc"
+  apc:
+    serial_port: "/dev/ttyUSB2"
+    baudrate: 9600 
+    publish_exchange: "apc"
 
   # sita:
   #   serial_port: "/dev/ttyUSB2"

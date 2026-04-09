@@ -1,16 +1,17 @@
-from datetime import datetime, timezone
-
-import asyncio
-import aiofiles
 from pathlib import Path
+import asyncio
+
+import aiofiles
 
 from core.node import Node
 from core.message_types import get_message_class, SensorData
 
 
 class Recorder(Node):
+
     def __init__(self, config: dict):
         super().__init__("recorder", config)
+
         self.output_dir = Path(self.config.get("output_dir", "/mnt/hydra_data"))
 
         self.subscriptions = []
