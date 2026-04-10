@@ -4,7 +4,8 @@ import asyncio
 import aiofiles
 
 from core.node import Node
-from core.message_types import get_message_class, SensorData
+from core.message_types import get_message_class
+from core.utils import get_exchange_config
 
 
 class Recorder(Node):
@@ -17,9 +18,14 @@ class Recorder(Node):
         self.subscriptions = []
         exchange_keys = self.config.get("subscribe_exchanges", [])
         for key in exchange_keys:
-            exchange_cfg = self.exchanges.get(key, key)
+            exchange_cfg = get_exchange_config(
+                {"subscribe_exchange": key}, 
+                self.exchanges, 
+                "subscribe_exchange"
+            )
             exchange_name = exchange_cfg.get("name")
             message_type_cls = get_message_class(exchange_cfg.get("message_type"))
+
             sub = self.create_subscription(
                 msg_type=message_type_cls,
                 exchange=exchange_name,
