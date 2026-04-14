@@ -73,27 +73,17 @@ class SensorData:
         return cls(data=data["data"], timestamp=Time.from_dict(data["timestamp"]))
     
      
-# @dataclass(slots=True)
-# class PDB_Command:
-#     pin: str
-#     state: bool
-#     request_id: Optional[str] = None
-#
-#     def to_dict(self) -> dict[str, Any]:
-#         return {
-#             "pin": self.pin,
-#             "state": self.state,
-#             "request_id": self.request_id,
-#         }
-#
-#     @classmethod
-#     def from_dict(cls, data: dict[str, Any]) -> "PDB_Command":
-#         return cls(
-#             pin=data["pin"],
-#             state=data.get("state"),
-#             request_id=data.get("request_id"),
-#         )
-#
+@dataclass(slots=True)
+class PDB_Command:
+    pin_name: str
+    new_state: bool # True for on, False for off
+
+    def to_dict(self) -> dict[str, Any]:
+        return { "pin_name": self.pin_name, "new_state": self.new_state }
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PDB_Command":
+        return cls(pin_name=data["pin_name"], new_state=data["new_state"])
+
 # @dataclass(slots=True)
 # class PDB_State:
 #     voltages: list[float]
@@ -120,8 +110,12 @@ MESSAGE_TYPE_REGISTRY = {
     "String": String,
     "Time": Time,
     "SensorData": SensorData,
+    "PDB_Command": PDB_Command,
 }
 
 def get_message_class(message_type: str):
-    return MESSAGE_TYPE_REGISTRY.get(message_type, String)
+    if message_type not in MESSAGE_TYPE_REGISTRY:
+        # TODO: Replace with proper logging and custom exception
+        raise ValueError(f"Message type '{message_type}' not found in registry.")
+    return MESSAGE_TYPE_REGISTRY[message_type]
 

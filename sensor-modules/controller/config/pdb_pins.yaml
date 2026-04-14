@@ -1,0 +1,110 @@
+ADS_Info:
+  A-IN:
+    i2c_address: 0x48
+    ads_channel: 0
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 0
+
+  RPi:
+    i2c_address: 0x48
+    ads_channel: 1
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 5
+    channel: 1
+
+  ETHR:
+    i2c_address: 0x48
+    ads_channel: 2
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 12
+    channel: 2
+
+  MOTH:
+    i2c_address: 0x48
+    ads_channel: 3
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 3
+
+  B-IN:
+    i2c_address: 0x49
+    ads_channel: 0
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 4
+
+  PANDA1:
+    i2c_address: 0x49
+    ads_channel: 1
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 5
+
+  CNDT:
+    i2c_address: 0x49
+    ads_channel: 2
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 6
+
+  APC:
+    i2c_address: 0x49
+    ads_channel: 3
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 7
+
+  C-IN:
+    i2c_address: 0x4A
+    ads_channel: 0
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 8
+
+  PANDA2:
+    i2c_address: 0x4A
+    ads_channel: 1
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 12
+    channel: 9
+
+  BUBBLE-CAM:
+    i2c_address: 0x4A
+    ads_channel: 2
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 12
+    channel: 10
+
+  STARLINK:
+    i2c_address: 0x4A
+    ads_channel: 3
+    voltage_low: null
+    voltage_high: null
+    default_voltage: 24
+    channel: 11
+
+Control_Pins:
+  A-IN: null
+  RPi: null
+  ETHR: A0
+  MOTH: A1
+  B-IN: null
+  PANDA1: A2
+  CNDT: A3
+  APC: A4
+  C-IN: null
+  PANDA2: A5
+  BUBBLE-CAM: A6
+  STARLINK: A7
