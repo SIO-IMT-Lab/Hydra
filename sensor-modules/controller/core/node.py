@@ -26,7 +26,7 @@ class Node:
         """
         self.node_name = node_name
         
-        self.node_config = config.get("nodes", {}).get(node_name, {})
+        self.config = config.get("nodes", {}).get(node_name, {})
         self.exchanges = config.get("exchanges", {})
         
         self.is_started = asyncio.Event()

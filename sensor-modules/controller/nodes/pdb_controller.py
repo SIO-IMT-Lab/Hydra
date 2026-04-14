@@ -1,5 +1,7 @@
-from core.node import Node 
-from core.message_types import PDB_Command
+import asyncio
+
+from core.node import Node
+from core.message_types import PDB_Command, get_message_class
 from core.utils import get_exchange_name
 from .ads import ADS
 from .mcp import MCP
@@ -21,14 +23,16 @@ class PDB_Controller(Node):
         
         self.mcp_address = self.config.get("mcp_address", 0x20)
         subscribe_exchange_name = get_exchange_name(
-            self.node_config,
+            self.config,
             self.exchanges,
             "subscribe_exchange",
         )
+        message_type_cls = get_message_class("PDB_Command")
+
         self.mcp = MCP(self.mcp_address, pdb_config.get("Control_Pins", {}))
         self.pdb_subscriber = self.create_subscription(
-            msg_type=PDB_Command,
-            exchange=subscribe_exchange_name,
+            msg_type=message_type_cls, 
+            exchange="mcp_commands",
             user_callback=self.receive_commands,
             binding_keys=["#"],
         )

@@ -13,7 +13,7 @@ class Conductivity(Node):
         self.serial_port = self.config.get("serial_port", "/dev/ttyUSB1")
         self.baudrate = self.config.get("baudrate", 9600)
         self.exchange_name = get_exchange_name(
-            self.node_config,
+            self.config,
             self.exchanges,
             "publish_exchange",
         )

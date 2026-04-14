@@ -11,6 +11,10 @@ exchanges:
     name: "sita"
     message_type: "SensorData"
 
+  mcp_commands:
+    name: "mcp_commands"
+    message_type: "PDB_Command"
+
 nodes:
   conductivity:
     serial_port: "/dev/ttyUSB1"
@@ -33,3 +37,25 @@ nodes:
       - "conductivity"
       # - "apc"
       # - "sita"
+
+  pdb_controller:
+    ads_addresses:
+      - 0x48
+      - 0x49
+      - 0x4A
+      - 0x4B
+    mcp_address: 0x20
+    ratio: 11.060 # Original code has 24/2.17 as a default
+    interval: 1.0
+    publish_exchange: "ads_values"
+    subscribe_exchange: "mcp_commands"
+
+  supervisor:
+    publish_exchange: "mcp_commands"
+    subscribe_exchanges: "ads_values"
+
+  # user:
+  #   publish_exchanges:
+  #     - 
+  #   subscribe_exchanges:
+  #     - 

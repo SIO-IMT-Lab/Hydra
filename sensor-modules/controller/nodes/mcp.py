@@ -51,6 +51,6 @@ class MCP:
             return None
 
         if letter == "A":
-            return self.mcp.gpioa[index]
-        return self.mcp.gpiob[index]
+            return self.mcp.get_pin(index)
+        return self.mcp.get_pin(index+8)
             
