@@ -26,12 +26,12 @@ class PDB_Controller(Node):
             "subscribe_exchange",
         )
         self.mcp = MCP(self.mcp_address, pdb_config.get("Control_Pins", {}))
-        self.pdb_subscriber = self.create_subscription(PDB_Command, subscribe_exchange_name) 
-        self.create_task(self.receive_commands)
+        self.pdb_subscriber = self.create_subscription(
+            msg_type=PDB_Command,
+            exchange=subscribe_exchange_name,
+            user_callback=self.receive_commands,
+            binding_keys=["#"],
+        )
 
     async def receive_commands(self, msg: PDB_Command):
-        self.mcp.set_pin(msg.pin_name, msg.value)
-    
-    
-        
-
+        self.mcp.set_pin(msg.pin_name, msg.new_state)
