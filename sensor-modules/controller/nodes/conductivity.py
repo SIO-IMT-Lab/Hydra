@@ -22,16 +22,29 @@ class Conductivity(Node):
         self.create_task(self.publish_conductivity)
 
     async def publish_conductivity(self):
-        reader, writer = await serial_asyncio.open_serial_connection(
+        reader, writer = await self.open_serial_connection(
             url=self.serial_port,
             baudrate=self.baudrate
         )
 
         try:
             while True:
-                raw_data = await reader.readline()
-                timestamp = Time.now() # Want the time right when the bytes arrive
+                try:
+                    raw_data = await asyncio.wait_for(
+                        reader.readline(),
+                        timeout=self.read_timeout
+                    )
+                except asyncio.TimeoutError:
+                    self.logger.warning(
+                        "Timed out waiting for conductivity data"
+                    )
+                    continue
+                timestamp = Time.now() # Want the time as soon as possible
+
                 data = raw_data.decode(errors="ignore").strip()
+                if not data:
+                    continue
+
                 msg = SensorData(data=data, timestamp=timestamp)
                 self.conductivity_publisher.publish(msg, self.exchange_name)
         finally:

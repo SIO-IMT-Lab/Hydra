@@ -25,6 +25,7 @@ class Node:
         :param config: A dictionary containing the node's configuration.
         """
         self.node_name = node_name
+        self.logger = logging.getLogger(f"node.{node_name}")
         
         self.config = config.get("nodes", {}).get(node_name, {})
         self.exchanges = config.get("exchanges", {})
@@ -118,3 +119,57 @@ class Node:
         while self.is_started.is_set():
             await timer_callback()
             await asyncio.sleep(timer_period)
+
+    async def open_serial_connection(self, url: str, baudrate: int):
+        retry_period = 2
+        max_attempts = 3
+        attempts = 0
+
+        while True:
+            try:
+                reader, writer = await serial_asyncio.open_serial_connection(
+                    url=url,
+                    baudrate=baudrate,
+                )
+
+                self.logger.info(
+                    "Connected to %s at %s baud",
+                    url,
+                    baudrate,
+                )
+
+                return reader, writer
+
+            except SerialException as err:
+                attempts += 1
+
+                if attempts < max_attempts:
+                    self.logger.warning(
+                        "Serial connection failed: %s. Attempt %s/%s failed. "
+                        "Retrying in %s seconds...",
+                        err,
+                        attempts,
+                        max_attempts,
+                        retry_period,
+                    )
+                    await asyncio.sleep(retry_period)
+                else:
+                    self.logger.error(
+                        "Serial connection failed after %s attempts: %s",
+                        max_attempts,
+                        err,
+                    )
+                    raise
+
+            except ValueError as err:
+                self.logger.error(
+                    "Invalid serial configuration: %s. Check baudrate.",
+                    err,
+                )
+                raise
+
+            except Exception:
+                self.logger.exception(
+                    "Unexpected error while opening serial connection"
+                )
+                raise
