@@ -45,8 +45,7 @@ nodes:
       - 0x4A
       - 0x4B
     mcp_address: 0x20
-    ratio: 11.060 # Original code has 24/2.17 as a default
-    interval: 1.0
+    ads_ratio: 11.060 # Original code has 24/2.17 as a default
     publish_exchange: "ads_values"
     subscribe_exchange: "mcp_commands"
 

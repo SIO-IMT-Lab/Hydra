@@ -84,33 +84,34 @@ class PDB_Command:
     def from_dict(cls, data: dict[str, Any]) -> "PDB_Command":
         return cls(pin_name=data["pin_name"], new_state=data["new_state"])
 
-# @dataclass(slots=True)
-# class PDB_State:
-#     voltages: list[float]
-#     pins: list[bool]
-#     stamp_ns: int
-#
-#     def to_dict(self) -> dict[str, Any]:
-#         return {
-#             "voltages": self.voltages,
-#             "pins": self.b_pins,
-#             "stamp_ns": int(self.stamp_ns),
-#         }
-#
-#     @classmethod
-#     def from_dict(cls, data: dict[str, Any]) -> "PdbStatus":
-#         return cls(
-#             voltages=[float(x) for x in data["voltages"]],
-#             pins=[bool(x) for x in data["pins"]],
-#             stamp_ns=int(data["stamp_ns"]),
-#         )
-#
-#
+@dataclass(slots=True)
+class PDB_State:
+    voltages: list[float]
+    pins: list[bool] # not sure at the moment
+    timestamp: Time
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "voltages": self.voltages,
+            "pins": self.pins,
+            "timestamp": self.timestamp,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PDB_State":
+        return cls(
+            voltages=[float(x) for x in data["voltages"]],
+            pins=[bool(x) for x in data["pins"]],
+            timestamp=Time.from_dict(data["timestamp"])
+        )
+
+
 MESSAGE_TYPE_REGISTRY = {
     "String": String,
     "Time": Time,
     "SensorData": SensorData,
     "PDB_Command": PDB_Command,
+    "PDB_State": PDB_State,
 }
 
 def get_message_class(message_type: str):

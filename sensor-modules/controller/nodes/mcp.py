@@ -9,7 +9,8 @@ class MCP:
     def __init__(self, address: int, control_pins_config: dict[str, str]):
         self.control_pins_config = control_pins_config        
         
-        self.mcp = MCP23017(board.I2C(), address=address)
+        i2c = board.I2C()
+        self.mcp = MCP23017(i2c, address=address)
         for i in range(16):
             pin = self.mcp.get_pin(i)
             pin.direction = digitalio.Direction.OUTPUT
@@ -52,5 +53,6 @@ class MCP:
 
         if letter == "A":
             return self.mcp.get_pin(index)
-        return self.mcp.get_pin(index+8)
+        elif letter == "B":
+            return self.mcp.get_pin(index+8)
             
