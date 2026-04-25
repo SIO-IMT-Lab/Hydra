@@ -1,4 +1,4 @@
-import serial_asyncio
+import asyncio
 
 from core.node import Node 
 from core.message_types import SensorData, Time
@@ -10,8 +10,9 @@ class APC(Node):
     def __init__(self, config: dict):
         super().__init__("apc", config)
 
-        self.serial_port = self.config.get("serial_port", "/dev/ttyUSB2")
-        self.baudrate = self.config.get("baudrate", 9600)
+        self.serial_port = self.node_config.get("serial_port", "/dev/ttyUSB2")
+        self.baudrate = self.node_config.get("baudrate", 9600)
+        self.read_timeout = self.node_config.get("read_timeout", 5.0)
         self.exchange_name = get_exchange_name(
             self.node_config,
             self.exchanges,
@@ -22,18 +23,31 @@ class APC(Node):
         self.create_task(self.publish_apc)
 
     async def publish_apc(self):
-        reader, writer = await serial_asyncio.open_serial_connection(
+        reader, writer = await self.open_serial_connection(
             url=self.serial_port,
             baudrate=self.baudrate
         )
 
         try:
             while True:
-                raw_data = await reader.readline()
-                timestamp = Time.now() # Want the time right when the bytes arrive
+                try:
+                    raw_data = await asyncio.wait_for(
+                        reader.readline(),
+                        timeout=self.read_timeout
+                    )
+                except asyncio.TimeoutError:
+                    self.logger.warning(
+                        "Timed out waiting for apc data"
+                    )
+                    continue
+                timestamp = Time.now() # Want the time as soon as possible
+
                 data = raw_data.decode(errors="ignore").strip()
+                if not data:
+                    continue
+
                 msg = SensorData(data=data, timestamp=timestamp)
-                self.conductivity_publisher.publish(msg, self.exchange_name)
+                self.apc_publisher.publish(msg, self.exchange_name)
         finally:
             writer.close()
             await writer.wait_closed()

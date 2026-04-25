@@ -11,16 +11,18 @@ class ServerConnection:
     ask for a communication channel for each of its subscribers and publishers
     """
 
-    def __init__(self):
+    def __init__(self, logger, host: str = 'localhost'):
+        self.logger = logger.getChild("server_connection")
+        self.host = host
         self.connection = None
-        self.is_connected = None
+        self.is_connected = asyncio.Event()
         
     def connect(self) -> None:
-        if self.is_connected is None:
-            self.is_connected = asyncio.Event()
+        if self.connection is not None:
+            return            
         
         self.connection = AsyncioConnection(
-            parameters=pika.ConnectionParameters(host='localhost'),
+            parameters=pika.ConnectionParameters(host=self.host),
             on_open_callback=self.on_connection_open,
             on_open_error_callback=self.on_connection_open_error,
             on_close_callback=self.on_connection_closed
@@ -31,36 +33,56 @@ class ServerConnection:
         After the RabbitMQ connection is established, set flag to indicate we
         can now create channels.
         """
-        print("CONNECTION OPENED")
+        self.logger.info("RabbitMQ Connection Opened")
         self.is_connected.set()
 
-    # TODO : Create proper connection error handling
     def on_connection_open_error(self, _unused_connection, err):
-        print(f"CONNECTION OPEN ERROR: {err!r}")
-
-    # TODO : Create proper connection close handling
-    def on_connection_closed(self, _unused_connection, reason):
-        print(f"CONNECTION OPEN CLOSED: {reason!r}")
-
-    async def create_channel(self, exchange_name):
-        await self.is_connected.wait()
-        # Insert error handling code that will check if self.connection exists
-        loop = asyncio.get_running_loop()
+        self.logger.error(
+            "RabbitMQ connection open error: %r",
+            err,
+        )
+        self.connection = None
+        self.is_connected.clear()
         
+    def on_connection_closed(self, _unused_connection, reason):
+        self.logger.info(
+            "RabbitMQ connection closed: %r",
+            reason,
+        )
+        self.connection = None
+        self.is_connected.clear()
+        
+    async def create_channel(self, exchange_name, exchange_type="topic"):
+        if self.connection is None:
+            self.connect()
+        
+        await self.is_connected.wait()
+        
+        channel = await self.open_channel()
+        await self.declare_exchange(channel, exchange_name, exchange_type)
+        
+        return channel
+
+    async def open_channel(self):
+        loop = asyncio.get_running_loop()
         channel_future = loop.create_future()
+        
         def on_channel_open(ch):
             if not channel_future.done():
                 channel_future.set_result(ch)
+                
         self.connection.channel(on_open_callback=on_channel_open)
-        channel = await channel_future
-        
+        return await channel_future
+
+    async def declare_exchange(self, channel, exchange_name, exchange_type='topic'):
+        loop = asyncio.get_running_loop()
         exchange_future = loop.create_future()
+        
         def on_exchange_declared(frame: pika.frame.Method):
             if not exchange_future.done():
                 exchange_future.set_result(frame)
+                
         channel.exchange_declare(exchange=exchange_name, 
-                                 exchange_type='topic', 
+                                 exchange_type=exchange_type, 
                                  callback=on_exchange_declared)
         await exchange_future
-        
-        return channel

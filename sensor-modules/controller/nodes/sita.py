@@ -86,11 +86,3 @@ class SITA(Node):
                 await writer.wait_closed()
             except Exception:
                 pass
-        
-def main(args=None):
-    sita = SITA()
-    spin(sita)
-
-if __name__ == '__main__':
-    main()
-

@@ -15,21 +15,28 @@ exchanges:
     name: "mcp_commands"
     message_type: "PDB_Command"
 
+  ads_values:
+    name: "ads_values"
+    message_type: "PDB_State"
+
 nodes:
   conductivity:
     serial_port: "/dev/ttyUSB1"
     baudrate: 9600
+    read_timeout: 5.0
     publish_exchange: "conductivity"
 
   apc:
     serial_port: "/dev/ttyUSB2"
     baudrate: 9600 
+    read_timeout: 5.0
     publish_exchange: "apc"
 
-  # sita:
-  #   serial_port: "/dev/ttyUSB2"
-  #   baudrate: 19200
-  #   publish_exchange: "sita"
+  sita:
+    serial_port: "/dev/ttyUSB2"
+    baudrate: 19200
+    read_timeout: 5.0
+    publish_exchange: "sita"
 
   recorder:
     output_dir: "/mnt/hydra_data"

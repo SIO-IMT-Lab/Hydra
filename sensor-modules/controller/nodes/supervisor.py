@@ -11,7 +11,7 @@ class Supervisor(Node):
         super().__init__("supervisor", config)
         
         self.publish_exchange_name = get_exchange_name(
-            self.config,
+            self.node_config,
             self.exchanges,
             "publish_exchange",
         )

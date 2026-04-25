@@ -13,10 +13,10 @@ class Recorder(Node):
     def __init__(self, config: dict):
         super().__init__("recorder", config)
 
-        self.output_dir = Path(self.config.get("output_dir", "/mnt/hydra_data"))
+        self.output_dir = Path(self.node_config.get("output_dir", "/mnt/hydra_data"))
 
         self.subscriptions = []
-        exchange_keys = self.config.get("subscribe_exchanges", [])
+        exchange_keys = self.node_config.get("subscribe_exchanges", [])
         for key in exchange_keys:
             exchange_cfg = get_exchange_config(
                 {"subscribe_exchange": key}, 

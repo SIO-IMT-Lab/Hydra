@@ -1,11 +1,15 @@
 from typing import Any, Callable, TypeVar, Awaitable, Sequence
 import asyncio
+import logging
+
+import serial_asyncio
+from serial.serialutil import SerialException
 
 from .server_connection import ServerConnection
 from .publisher import Publisher
 from .subscriber import Subscriber
-# from timer import Timer 
 from .message_types import SerializableMsg
+
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
 
@@ -27,11 +31,11 @@ class Node:
         self.node_name = node_name
         self.logger = logging.getLogger(f"node.{node_name}")
         
-        self.config = config.get("nodes", {}).get(node_name, {})
+        self.node_config = config.get("nodes", {}).get(node_name, {})
         self.exchanges = config.get("exchanges", {})
         
         self.is_started = asyncio.Event()
-        self._server_connection = ServerConnection()
+        self._server_connection = ServerConnection(self.logger)
         
         self._publishers = []
         self._subscribers = []
@@ -57,8 +61,6 @@ class Node:
                     
         self.is_started.set()
     
-    
-
     def create_publisher(self, 
                          msg_type: type[TMsg], 
                          exchange: str
@@ -173,3 +175,4 @@ class Node:
                     "Unexpected error while opening serial connection"
                 )
                 raise
+                

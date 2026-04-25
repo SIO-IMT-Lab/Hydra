@@ -86,22 +86,19 @@ class PDB_Command:
 
 @dataclass(slots=True)
 class PDB_State:
-    voltages: list[float]
-    pins: list[bool] # not sure at the moment
+    voltages: dict[str, float]
     timestamp: Time
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "voltages": self.voltages,
-            "pins": self.pins,
-            "timestamp": self.timestamp,
+            "timestamp": self.timestamp.to_dict(),
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "PDB_State":
         return cls(
-            voltages=[float(x) for x in data["voltages"]],
-            pins=[bool(x) for x in data["pins"]],
+            voltages={str(k): float(v) for k, v in data["voltages"].items()},
             timestamp=Time.from_dict(data["timestamp"])
         )
 

@@ -6,9 +6,14 @@ from adafruit_mcp230xx.mcp23017 import MCP23017
 
 class MCP:
     
-    def __init__(self, address: int, control_pins_config: dict[str, str]):
+    def __init__(self, 
+                 address: int, 
+                 control_pins_config: dict[str, str], 
+                 logger
+    ) -> None:
         self.control_pins_config = control_pins_config        
-        
+        self.logger = logger.getChild("mcp")
+
         i2c = board.I2C()
         self.mcp = MCP23017(i2c, address=address)
         for i in range(16):
@@ -33,22 +38,37 @@ class MCP:
     def _get_pin_obj(self, name: str):
         pin = self.control_pins_config.get(name)
         if pin is None:
-            print(f"Warning: Invalid device name '{name}'. No control pin found in config.")
+            self.logger.warning(
+                "No control pin found for device '%s'.",
+                name,
+            )            
             return None
 
         try:
             letter = pin[0].upper()
             index = int(pin[1:])
         except (IndexError, ValueError):
-            print(f"Warning: Invalid pin format '{pin}' for device '{name}'. Expected format like 'A0' or 'B3'.")
+            self.logger.warning(
+                "Invalid pin format '%s' for device '%s'. Expected format like 'A0' or 'B3'.",
+                pin,
+                name,
+            )
             return None
 
-        if letter not in ("A", "B"):
-            print(f"Warning: Invalid pin bank '{letter}' for device '{name}'. Expected 'A' or 'B'.")
+        if letter not in {"A", "B"}:
+            self.logger.warning(
+                "Invalid pin bank '%s' for device '%s'. Expected 'A' or 'B'.",
+                letter,
+                name,
+            )
             return None
 
         if not (0 <= index <= 7):
-            print(f"Warning: Invalid pin index '{index}' for device '{name}'. Valid range is 0-7.")
+            self.logger.warning(
+                "Invalid pin index '%s' for device '%s'. Valid range is 0-7.",
+                index,
+                name,
+            )
             return None
 
         if letter == "A":

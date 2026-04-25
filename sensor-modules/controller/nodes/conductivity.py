@@ -1,4 +1,4 @@
-import serial_asyncio
+import asyncio
 
 from core.node import Node 
 from core.message_types import SensorData, Time
@@ -10,10 +10,11 @@ class Conductivity(Node):
     def __init__(self, config: dict):
         super().__init__("conductivity", config)
         
-        self.serial_port = self.config.get("serial_port", "/dev/ttyUSB1")
-        self.baudrate = self.config.get("baudrate", 9600)
+        self.serial_port = self.node_config.get("serial_port", "/dev/ttyUSB1")
+        self.baudrate = self.node_config.get("baudrate", 9600)
+        self.read_timeout = self.node_config.get("read_timeout", 5.0)
         self.exchange_name = get_exchange_name(
-            self.config,
+            self.node_config,
             self.exchanges,
             "publish_exchange",
         )
@@ -47,6 +48,7 @@ class Conductivity(Node):
 
                 msg = SensorData(data=data, timestamp=timestamp)
                 self.conductivity_publisher.publish(msg, self.exchange_name)
+                self.logger.info(f"Published conductivity data: {data}")
         finally:
             writer.close()
             await writer.wait_closed()
