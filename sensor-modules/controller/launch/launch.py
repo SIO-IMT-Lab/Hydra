@@ -1,3 +1,5 @@
+import logging
+
 from core.launch import launch
 from core.utils import load_config
 from nodes.apc import APC
@@ -11,12 +13,17 @@ from nodes.supervisor import Supervisor
 def main(args=None):
     node_config = load_config("config/nodes.yaml")
     pdb_config = load_config("config/pdb_pins.yaml")
-    
+    logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s %(levelname)s %(message)s',
+            datefmt='%Y-%m-%dT%H:%M:%S%z'
+    )
+   
     nodes = [
-        # APC(config),
-        # Conductivity(node_config),
+        APC(node_config),
+        Conductivity(node_config),
         PDB_Controller(node_config, pdb_config),
-        # Recorder(node_config),
+        Recorder(node_config),
         # SITA(config)
         Supervisor(node_config, pdb_config)
     ]

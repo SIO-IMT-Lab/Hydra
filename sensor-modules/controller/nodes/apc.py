@@ -48,6 +48,7 @@ class APC(Node):
 
                 msg = SensorData(data=data, timestamp=timestamp)
                 self.apc_publisher.publish(msg, self.exchange_name)
+                self.logger.info(f"Published APC data: {data}")
         finally:
             writer.close()
             await writer.wait_closed()

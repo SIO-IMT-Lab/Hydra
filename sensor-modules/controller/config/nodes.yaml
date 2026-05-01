@@ -42,7 +42,7 @@ nodes:
     output_dir: "/mnt/hydra_data"
     subscribe_exchanges:
       - "conductivity"
-      # - "apc"
+      - "apc"
       # - "sita"
 
   pdb_controller:

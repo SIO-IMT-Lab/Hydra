@@ -32,7 +32,7 @@ class PDB_Controller(Node):
             self.exchanges,
             "subscribe_exchange",
         )
-        self.mcp = MCP(mcp_address, pdb_config.get("Control_Pins", {}))
+        self.mcp = MCP(mcp_address, pdb_config.get("Control_Pins", {}), self.logger)
         self.pdb_subscriber = self.create_subscription(
             msg_type=PDB_Command, 
             exchange=subscribe_exchange_name,

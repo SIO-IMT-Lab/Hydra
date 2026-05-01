@@ -41,7 +41,6 @@ class Recorder(Node):
         async def callback(msg):
             line = f"{msg.timestamp},{msg.data}\n"
 
-            print(line)
             if not file_path.exists():
                 await self.write_to_file(file_path, "timestamp,value\n")
 

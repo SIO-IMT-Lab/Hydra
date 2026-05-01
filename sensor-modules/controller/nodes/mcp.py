@@ -26,7 +26,8 @@ class MCP:
         pin_obj = self._get_pin_obj(name)
         if pin_obj is None:
             return
-        pin_obj.value = value
+        if pin_obj.value != value:
+            pin_obj.value = value
 
     def get_pin(self, name: str) -> bool:
         """Get the value of a specific pin on the MCP23017."""
