@@ -5,7 +5,7 @@ import aiofiles
 
 from core.node import Node
 from core.message_types import get_message_class
-from core.utils import get_exchange_config
+from core.utils import dict_to_csv_line, get_exchange_config
 
 
 class Recorder(Node):
@@ -39,12 +39,10 @@ class Recorder(Node):
         file_path = self.output_dir / filename
 
         async def callback(msg):
-            line = f"{msg.timestamp},{msg.data}\n"
-
             if not file_path.exists():
-                await self.write_to_file(file_path, "timestamp,value\n")
-
-            await self.write_to_file(file_path, line)
+                await self.write_to_file(file_path, msg.csv_header() + "\n")
+            csv_entry = dict_to_csv_line(msg.csv_header(), msg.to_csv_row())
+            await self.write_to_file(file_path, csv_entry)
 
         return callback           
 
@@ -54,8 +52,7 @@ class Recorder(Node):
         try:
             async with aiofiles.open(file_path, mode='a') as f:
                 await f.write(data)
-            # TODO: When we get a proper logging module make this [INFO]
-            # print(f"Successfully wrote {data} to {filename}")
+            print(f"[INFO] Wrote data to {file_path}")
         except Exception as e:
             print(f"An error occurred: {e}")
 

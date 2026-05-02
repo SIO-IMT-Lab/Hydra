@@ -44,6 +44,7 @@ nodes:
       - "conductivity"
       - "apc"
       # - "sita"
+      - "ads_values"
 
   pdb_controller:
     # ADS addresses are defined in pdb_pins.yaml

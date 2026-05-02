@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 import yaml
 
 
@@ -22,3 +23,7 @@ def get_exchange_name(node_config: dict,
 ) -> str:
     exchange_cfg = get_exchange_config(node_config, exchanges, config_key)
     return exchange_cfg.get("name")
+
+def dict_to_csv_line(fields: list[str], row: dict[str, Any]) -> str:
+    values = [str(row.get(field, "")) for field in fields]
+    return ",".join(values) + "\n"

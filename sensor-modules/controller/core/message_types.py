@@ -55,22 +55,121 @@ class Time:
     def to_datetime_utc(self) -> datetime:
         return datetime.fromtimestamp(self.ns / 1e9, tz=timezone.utc)
 
-    def __str__(self) -> str:
-        # ISO Format: YYYY-MM-DDThh:mm:ss
+    def to_iso(self) -> str:
+        # ISO Format: YYYY-MM-DDThh:mm:ss.ssssss+00:00
         return self.to_datetime_utc().isoformat()
+    
+    def __str__(self) -> str:
+        return self.to_iso()
 
 
 @dataclass(slots=True)
-class SensorData:
-    data: str
+class ConductivityData:
     timestamp: Time
-
-    def to_dict(self) -> dict[str, Any]:
-        return { "data": self.data, "timestamp": self.timestamp.to_dict() }
+    conductivity: float
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SensorData":
-        return cls(data=data["data"], timestamp=Time.from_dict(data["timestamp"]))
+    def csv_fields(cls) -> list[str]:
+        return ["timestamp", "conductivity"]
+
+    def to_csv_row(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp.to_iso(),
+            "conductivity": self.conductivity
+        }
+        
+    def to_dict(self) -> dict[str, Any]:
+        return { 
+            "timestamp": self.timestamp.to_dict(), 
+            "conductivity": self.conductivity 
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ConductivityData":
+        return cls(
+            timestamp=Time.from_dict(data["timestamp"]),
+            data=data["conductivity"], 
+        )
+
+
+@dataclass(slots=True)
+class APCData:
+    timestamp: Time
+    value_1: float
+    value_2: float
+
+    @classmethod
+    def csv_fields(cls) -> list[str]:
+        return ["timestamp", "value_1", "value_2"]
+
+    def to_csv_row(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp.to_iso(),
+            "value_1": self.value_1,
+            "value_2": self.value_2,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp.to_dict(),
+            "value_1": self.value_1,
+            "value_2": self.value_2,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "APCData":
+        return cls(
+            timestamp=Time.from_dict(data["timestamp"]),
+            value_1=float(data["value_1"]),
+            value_2=float(data["value_2"])
+        )
+
+
+@dataclass(slots=True)
+class SITAData:
+    timestamp: Time
+    value_1: float
+    value_2: float
+    value_3: float
+    value_4: float
+
+    @classmethod
+    def csv_fields(cls) -> list[str]:
+        return [
+            "timestamp",
+            "value_1",
+            "value_2",
+            "value_3",
+            "value_4",
+        ]
+
+    def to_csv_row(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp.to_iso(),
+            "value_1": self.value_1,
+            "value_2": self.value_2,
+            "value_3": self.value_3,
+            "value_4": self.value_4,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp.to_dict(),
+            "value_1": self.value_1,
+            "value_2": self.value_2,
+            "value_3": self.value_3,
+            "value_4": self.value_4,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "SITAData":
+        return cls(
+            timestamp=Time.from_dict(data["timestamp"]),
+            value_1=float(data["value_1"]),
+            value_2=float(data["value_2"]),
+            value_3=float(data["value_3"]),
+            value_4=float(data["value_4"])
+        )
     
      
 @dataclass(slots=True)
@@ -80,33 +179,53 @@ class PDB_Command:
 
     def to_dict(self) -> dict[str, Any]:
         return { "pin_name": self.pin_name, "new_state": self.new_state }
+    
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "PDB_Command":
         return cls(pin_name=data["pin_name"], new_state=data["new_state"])
 
+
 @dataclass(slots=True)
 class PDB_State:
-    voltages: dict[str, float]
     timestamp: Time
+    voltages: dict[str, float]
+    
+    # Debating whether to hardcode the voltage fields here or just let it be dynamic. 
+    # For now I'm hardcoding since we know the fields we want and it makes it easier 
+    # to convert to CSV, but we can always change this later if we want more flexibility.
+    VOLTAGE_FIELDS = ["A-IN", "RPi", "ETHR", "MOTH", "B-IN", "PANDA1", "CNDT", 
+                      "APC", "C-IN", "PANDA2", "BUBBLE-CAM", "STARLINK"]
+    
+    @classmethod
+    def csv_fields(cls) -> list[str]:
+        return ["timestamp"] + cls.VOLTAGE_FIELDS
+
+    def to_csv_row(self) -> dict[str, Any]:
+        row = { "timestamp": self.timestamp.to_iso() }
+        for field in self.VOLTAGE_FIELDS:
+            row[field] = self.voltages.get(field)
+        return row
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "voltages": self.voltages,
             "timestamp": self.timestamp.to_dict(),
+            "voltages": self.voltages
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "PDB_State":
         return cls(
-            voltages={str(k): float(v) for k, v in data["voltages"].items()},
-            timestamp=Time.from_dict(data["timestamp"])
+            timestamp=Time.from_dict(data["timestamp"]),
+            voltages={str(k): float(v) for k, v in data["voltages"].items()}
         )
 
 
 MESSAGE_TYPE_REGISTRY = {
     "String": String,
     "Time": Time,
-    "SensorData": SensorData,
+    "ConductivityData": ConductivityData,
+    "APCData": APCData,
+    "SITAData": SITAData,
     "PDB_Command": PDB_Command,
     "PDB_State": PDB_State,
 }

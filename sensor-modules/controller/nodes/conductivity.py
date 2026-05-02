@@ -1,7 +1,7 @@
 import asyncio
 
 from core.node import Node 
-from core.message_types import SensorData, Time
+from core.message_types import ConductivityData, Time
 from core.utils import get_exchange_name
 
 
@@ -19,7 +19,7 @@ class Conductivity(Node):
             "publish_exchange",
         )
 
-        self.conductivity_publisher = self.create_publisher(SensorData, self.exchange_name) 
+        self.conductivity_publisher = self.create_publisher(ConductivityData, self.exchange_name) 
         self.create_task(self.publish_conductivity)
 
     async def publish_conductivity(self):
@@ -46,9 +46,9 @@ class Conductivity(Node):
                 if not data:
                     continue
 
-                msg = SensorData(data=data, timestamp=timestamp)
+                msg = ConductivityData(conductivity=float(data), timestamp=timestamp)
                 self.conductivity_publisher.publish(msg, self.exchange_name)
-                self.logger.info(f"Published conductivity data: {data}")
+                self.logger.info(f"Published conductivity data: {msg.to_dict()}")
         finally:
             writer.close()
             await writer.wait_closed()
