@@ -1,15 +1,15 @@
 exchanges:
   conductivity:
     name: "conductivity"
-    message_type: "SensorData"
+    message_type: "ConductivityData"
 
   apc:
     name: "apc"
-    message_type: "SensorData"
+    message_type: "APCData"
 
   sita:
     name: "sita"
-    message_type: "SensorData"
+    message_type: "SITAData"
 
   mcp_commands:
     name: "mcp_commands"
@@ -34,8 +34,10 @@ nodes:
 
   sita:
     serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
-    baudrate: 19200
-    read_timeout: 5.0
+    baudrate: 57600
+    sample_read_interval: 30.0
+    serial_read_timeout: 1.0
+    measure_time_limit: 20.0
     publish_exchange: "sita"
 
   recorder:
@@ -56,6 +58,10 @@ nodes:
   supervisor:
     publish_exchange: "mcp_commands"
     subscribe_exchanges: "ads_values"
+
+  heartbeat:
+    high_time: 1.0
+    low_time: 1.0
 
   # user:
   #   publish_exchanges:

@@ -2,7 +2,7 @@ import asyncio
 
 from core.node import Node 
 from core.message_types import ConductivityData, Time
-from core.utils import get_exchange_name
+from core.utils import get_exchange_name, parse_float
 
 
 class Conductivity(Node):
@@ -43,10 +43,12 @@ class Conductivity(Node):
                 timestamp = Time.now() # Want the time as soon as possible
 
                 data = raw_data.decode(errors="ignore").strip()
-                if not data:
+                clean_data = parse_float(data)
+                if clean_data is None:
+                    self.logger.warning("Bad conductivity data: %r", data)
                     continue
 
-                msg = ConductivityData(conductivity=float(data), timestamp=timestamp)
+                msg = ConductivityData(conductivity=float(clean_data), timestamp=timestamp)
                 self.conductivity_publisher.publish(msg, self.exchange_name)
                 self.logger.info(f"Published conductivity data: {msg.to_dict()}")
         finally:

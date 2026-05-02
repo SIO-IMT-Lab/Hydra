@@ -34,14 +34,23 @@ class Recorder(Node):
             )
             self.subscriptions.append(sub)
 
+        self.header_lock = asyncio.Lock() # Prevents duplicate headers
+        self.initialized_files = set()
+
     def recorder_callback_factory(self, exchange: str):
         filename = f"{exchange}_data.csv"
         file_path = self.output_dir / filename
 
         async def callback(msg):
-            if not file_path.exists():
-                await self.write_to_file(file_path, msg.csv_header() + "\n")
-            csv_entry = dict_to_csv_line(msg.csv_header(), msg.to_csv_row())
+            fields = msg.csv_fields()
+
+            async with self.header_lock:
+                if file_path not in self.initialized_files:
+                    header = ",".join(fields) + "\n"
+                    await self.write_to_file(file_path, header)
+                    self.initialized_files.add(file_path)
+
+            csv_entry = dict_to_csv_line(fields, msg.to_csv_row())
             await self.write_to_file(file_path, csv_entry)
 
         return callback           

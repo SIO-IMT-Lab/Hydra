@@ -88,7 +88,7 @@ class ConductivityData:
     def from_dict(cls, data: dict[str, Any]) -> "ConductivityData":
         return cls(
             timestamp=Time.from_dict(data["timestamp"]),
-            data=data["conductivity"], 
+            conductivity=data["conductivity"], 
         )
 
 
