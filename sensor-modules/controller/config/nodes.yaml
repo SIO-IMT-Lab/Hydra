@@ -21,19 +21,19 @@ exchanges:
 
 nodes:
   conductivity:
-    serial_port: "/dev/ttyUSB1"
+    serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if00-port0"
     baudrate: 9600
     read_timeout: 5.0
     publish_exchange: "conductivity"
 
   apc:
-    serial_port: "/dev/ttyUSB2"
+    serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if01-port0"
     baudrate: 9600 
     read_timeout: 5.0
     publish_exchange: "apc"
 
   sita:
-    serial_port: "/dev/ttyUSB2"
+    serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
     baudrate: 19200
     read_timeout: 5.0
     publish_exchange: "sita"
@@ -46,11 +46,7 @@ nodes:
       # - "sita"
 
   pdb_controller:
-    ads_addresses:
-      - 0x48
-      - 0x49
-      - 0x4A
-      - 0x4B
+    # ADS addresses are defined in pdb_pins.yaml
     mcp_address: 0x20
     ads_ratio: 11.060 # Original code has 24/2.17 as a default
     publish_exchange: "ads_values"
