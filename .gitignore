@@ -1,7 +1,6 @@
 *.DS_Store
 *.pyc
 .idea/
-*.txt
 *.csv
 
 # Byte-compiled / optimized / DLL files
