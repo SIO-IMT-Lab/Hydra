@@ -25,3 +25,6 @@ class Supervisor(Node):
 
         command = PDB_Command(pin_name='APC', new_state=True)
         self.pdb_command_publisher.publish(command, self.publish_exchange_name)
+
+        # command = PDB_Command(pin_name='STARLINK', new_state=True)
+        # self.pdb_command_publisher.publish(command, self.publish_exchange_name)

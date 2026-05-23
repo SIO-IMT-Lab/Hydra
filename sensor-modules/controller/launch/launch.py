@@ -8,6 +8,7 @@ from nodes.pdb_controller import PDB_Controller
 from nodes.recorder import Recorder
 from nodes.sita import SITA
 from nodes.supervisor import Supervisor
+from nodes.heartbeat import Heartbeat
 
 
 def main(args=None):
@@ -25,6 +26,7 @@ def main(args=None):
         PDB_Controller(node_config, pdb_config),
         Recorder(node_config),
         # SITA(config)
+        Heartbeat(node_config),
         Supervisor(node_config, pdb_config)
     ]
     

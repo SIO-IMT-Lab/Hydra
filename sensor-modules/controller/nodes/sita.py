@@ -8,12 +8,6 @@ from core.launch import spin
 from config.constants import SITA_COMMANDS
 
 
-DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
-DEFAULT_BAUDRATE = 57600
-DEFAULT_INTERVAL = 3  # seconds
-DEFAULT_TIMEOUT = 1.0
-DEFAULT_MEASURE_LIMIT = 20.0
-
 ENABLE_PIN = 4
 
 class SITA(Node):

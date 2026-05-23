@@ -61,7 +61,7 @@ nodes:
 
   heartbeat:
     high_time: 1.0
-    low_time: 1.0
+    low_time: 5.0
 
   # user:
   #   publish_exchanges:

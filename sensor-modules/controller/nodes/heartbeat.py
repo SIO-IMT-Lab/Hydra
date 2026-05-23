@@ -13,7 +13,7 @@ class Heartbeat(Node):
         super().__init__("heartbeat", config)
         
         self.on_time = self.node_config.get("high_time", 1.0)
-        self.off_time = self.node_config.get("low_time", 1.0)
+        self.off_time = self.node_config.get("low_time", 5.0)
         
         self.pulse_pin = DigitalOutputDevice(PULSE_PIN)
 
