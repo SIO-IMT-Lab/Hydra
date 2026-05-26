@@ -45,8 +45,8 @@ class PDB_Controller(Node):
         timestamp = Time.now()
         msg = PDB_State(voltages=voltages, timestamp=timestamp)
         self.pdb_publisher.publish(msg, self.publish_exchange_name)
-        self.logger.info(f"Published PDB voltages: {voltages}")
+        self.logger.info("Published PDB voltages: %s", voltages)
 
-    async def receive_commands(self, msg: PDB_Command):
-        self.logger.info(f"Received PDB command: {msg}")
-        self.mcp.set_pin(msg.pin_name, msg.new_state)
+    async def receive_commands(self, command: PDB_Command):
+        self.logger.info("Received PDB command: %s", command)
+        await asyncio.to_thread(self.mcp.set_pin(command.pin_name, command.new_state))

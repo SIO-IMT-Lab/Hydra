@@ -52,7 +52,7 @@ class APC(Node):
 
                 msg = APCData(value_1=value1, value_2=value2, timestamp=timestamp)
                 self.apc_publisher.publish(msg, self.exchange_name)
-                self.logger.info(f"Published APC data: {msg.to_dict()}")
+                self.logger.info("Published APC data: %s", msg.to_dict())
         finally:
             writer.close()
             await writer.wait_closed()

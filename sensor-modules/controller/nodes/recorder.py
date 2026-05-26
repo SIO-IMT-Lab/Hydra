@@ -74,7 +74,6 @@ class Recorder(Node):
         try:
             async with aiofiles.open(file_path, mode='a') as f:
                 await f.write(data)
-            self.logger.info(f"Wrote data to {file_path}")
+            self.logger.info("Wrote data to %s", file_path)
         except OSError as e:
-            self.logger.error(f"OS error writing to {file_path}: {e}")
-
+            self.logger.error("OS error writing to %s: %s", file_path, e)

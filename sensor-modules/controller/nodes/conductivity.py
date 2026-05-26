@@ -50,7 +50,7 @@ class Conductivity(Node):
 
                 msg = ConductivityData(conductivity=float(clean_data), timestamp=timestamp)
                 self.conductivity_publisher.publish(msg, self.exchange_name)
-                self.logger.info(f"Published conductivity data: {msg.to_dict()}")
+                self.logger.info("Published conductivity data: %s", msg.to_dict())
         finally:
             writer.close()
             await writer.wait_closed()

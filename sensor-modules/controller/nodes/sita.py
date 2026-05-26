@@ -56,14 +56,14 @@ class SITA(Node):
                         values = self.parse_line(line)
                         msg = SITAData(timestamp=timestamp, **values)
                         self.sita_publisher.publish(msg, self.exchange_name)
-                        self.logger.info(f"Published SITA data: {msg.to_dict()}")
+                        self.logger.info("Published SITA data: %s", msg.to_dict())
 
                     await asyncio.sleep(self.sample_read_interval)
             finally:
                 try:
                     await self.power_off(writer)
                 except Exception as e:
-                    self.logger.warning(f"Could not power off SITA: {e}")
+                    self.logger.warning("Could not power off SITA: %s", e)
                 writer.close()
                 await writer.wait_closed()
         finally:
