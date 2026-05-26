@@ -14,6 +14,10 @@ class Recorder(Node):
         super().__init__("recorder", config)
 
         self.output_dir = Path(self.node_config.get("output_dir", "/mnt/hydra_data"))
+        # Create any missing parent directories in the path and 
+        # prevents a FileExistsError if the directory already exists
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.check_permissions()
 
         self.subscriptions = []
         exchange_keys = self.node_config.get("subscribe_exchanges", [])
@@ -37,6 +41,15 @@ class Recorder(Node):
         self.header_lock = asyncio.Lock() # Prevents duplicate headers
         self.initialized_files = set()
 
+    def check_permissions(self):
+        """
+        A potential problem I see is that the current user doesn't have the right
+        permissions to write to the directory. Thus, this function will check that
+        and raise an exception if needed.
+        """
+        pass
+
+
     def recorder_callback_factory(self, exchange: str):
         filename = f"{exchange}_data.csv"
         file_path = self.output_dir / filename
@@ -46,22 +59,22 @@ class Recorder(Node):
 
             async with self.header_lock:
                 if file_path not in self.initialized_files:
-                    header = ",".join(fields) + "\n"
-                    await self.write_to_file(file_path, header)
-                    self.initialized_files.add(file_path)
+                    file_exists = file_path.exists() and file_path.stat().st_size > 0
+                    if not file_exists:
+                        header = ",".join(fields) + "\n"
+                        await self.write_to_file(file_path, header)
+                self.initialized_files.add(file_path)
 
             csv_entry = dict_to_csv_line(fields, msg.to_csv_row())
             await self.write_to_file(file_path, csv_entry)
 
         return callback           
 
-    # TODO: Move this into another utility module or something, since we'll
-    #       probably want to use it in other places too
     async def write_to_file(self, file_path: Path, data: str):
         try:
             async with aiofiles.open(file_path, mode='a') as f:
                 await f.write(data)
-            print(f"[INFO] Wrote data to {file_path}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            self.logger.info(f"Wrote data to {file_path}")
+        except OSError as e:
+            self.logger.error(f"OS error writing to {file_path}: {e}")
 

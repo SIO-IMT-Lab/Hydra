@@ -3,6 +3,7 @@ import asyncio
 import pika
 from pika.adapters.asyncio_connection import AsyncioConnection
 
+
 class ServerConnection:
     """
     A Node's broker for communication channels
