@@ -35,9 +35,9 @@ nodes:
   sita:
     serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
     baudrate: 57600
-    sample_read_interval: 30.0
+    sample_read_interval: 10.0
     serial_read_timeout: 1.0
-    measure_time_limit: 20.0
+    measure_time_limit: 30.0
     publish_exchange: "sita"
 
   recorder:
@@ -45,7 +45,7 @@ nodes:
     subscribe_exchanges:
       - "conductivity"
       - "apc"
-      # - "sita"
+      - "sita"
       - "ads_values"
 
   pdb_controller:

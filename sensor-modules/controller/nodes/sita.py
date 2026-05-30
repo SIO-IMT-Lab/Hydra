@@ -18,7 +18,7 @@ class SITA(Node):
         self.baudrate = self.node_config.get("baudrate", 57600)
 
         self.warmup_time = self.node_config.get("warmup_time", 4.0)
-        self.sample_read_interval = self.node_config.get("sample_read_interval", 30.0)
+        self.sample_read_interval = self.node_config.get("sample_read_interval", 10.0)
         self.serial_read_timeout = self.node_config.get("serial_read_timeout", 0.04)
         self.measure_time_limit = self.node_config.get("measure_time_limit", 20.0)
         self.min_valid_response_length = self.node_config.get("min_valid_response_length", 20)
@@ -38,7 +38,7 @@ class SITA(Node):
         self.enable_pin.on()
         try:
             await asyncio.sleep(self.warmup_time)
-            
+
             reader, writer = await self.open_serial_connection(
                 url=self.serial_port,
                 baudrate=self.baudrate
@@ -53,6 +53,7 @@ class SITA(Node):
                     if line is None:
                         self.logger.warning("SITA measurement timed out")
                     else:
+                        self.logger.warning(line)
                         values = self.parse_line(line)
                         msg = SITAData(timestamp=timestamp, **values)
                         self.sita_publisher.publish(msg, self.exchange_name)
@@ -76,7 +77,7 @@ class SITA(Node):
         await self.send_command(writer, SITA_COMMANDS.NO_CAL)
         await asyncio.sleep(3)
         await self.send_command(writer, SITA_COMMANDS.SAMPLE)
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
     
     async def power_off(self, writer):
         await self.send_command(writer, SITA_COMMANDS.POWER_OFF)
@@ -87,6 +88,12 @@ class SITA(Node):
     async def take_measurement(self, reader, writer):
         loop = asyncio.get_running_loop()
         deadline = loop.time() + self.measure_time_limit
+
+        while True:
+            try:
+                await asyncio.wait_for(reader.readline(), timeout=0.01)
+            except asyncio.TimeoutError:
+                break
 
         while loop.time() < deadline:
             await self.send_command(writer, SITA_COMMANDS.QUERY)
@@ -113,7 +120,14 @@ class SITA(Node):
     
     def parse_line(self, line):
         """
-        Parses SITA Data Line...Not sure what it looks like rn
+        Parses SITA Data Line
+        Raw Data Example: S31 1 81.0 15 23.9 3 22:13 29.05.26
         """
-        pass
+        values = {}
+        data = line.split(" ")
+        values["value_1"] = data[2]
+        values["value_2"] = data[4]
+        return values
+
+
 

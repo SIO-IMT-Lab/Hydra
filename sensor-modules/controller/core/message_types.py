@@ -130,8 +130,6 @@ class SITAData:
     timestamp: Time
     value_1: float
     value_2: float
-    value_3: float
-    value_4: float
 
     @classmethod
     def csv_fields(cls) -> list[str]:
@@ -139,8 +137,6 @@ class SITAData:
             "timestamp",
             "value_1",
             "value_2",
-            "value_3",
-            "value_4",
         ]
 
     def to_csv_row(self) -> dict[str, Any]:
@@ -148,8 +144,6 @@ class SITAData:
             "timestamp": self.timestamp.to_iso(),
             "value_1": self.value_1,
             "value_2": self.value_2,
-            "value_3": self.value_3,
-            "value_4": self.value_4,
         }
 
     def to_dict(self) -> dict[str, Any]:
@@ -157,8 +151,6 @@ class SITAData:
             "timestamp": self.timestamp.to_dict(),
             "value_1": self.value_1,
             "value_2": self.value_2,
-            "value_3": self.value_3,
-            "value_4": self.value_4,
         }
 
     @classmethod
@@ -167,8 +159,6 @@ class SITAData:
             timestamp=Time.from_dict(data["timestamp"]),
             value_1=float(data["value_1"]),
             value_2=float(data["value_2"]),
-            value_3=float(data["value_3"]),
-            value_4=float(data["value_4"])
         )
     
      
