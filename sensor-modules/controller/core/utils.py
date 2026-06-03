@@ -28,9 +28,3 @@ def get_exchange_name(node_config: dict,
 def dict_to_csv_line(fields: list[str], row: dict[str, Any]) -> str:
     values = [str(row.get(field, "")) for field in fields]
     return ",".join(values) + "\n"
-
-def parse_float(data: str) -> float | None:
-    match = re.search(r"[+-]?\d*\.?\d+", data)
-    if match:
-        return float(match.group())
-    return None

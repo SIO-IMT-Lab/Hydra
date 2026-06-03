@@ -2,7 +2,7 @@ import asyncio
 
 from core.node import Node 
 from core.message_types import ConductivityData, Time
-from core.utils import get_exchange_name, parse_float
+from core.utils import get_exchange_name
 
 
 class Conductivity(Node):
@@ -43,7 +43,7 @@ class Conductivity(Node):
                 timestamp = Time.now() # Want the time as soon as possible
 
                 data = raw_data.decode(errors="ignore").strip()
-                clean_data = parse_float(data)
+                clean_data = self.parse_conductivity_line(data)
                 if clean_data is None:
                     self.logger.warning("Bad conductivity data: %r", data)
                     continue
@@ -54,4 +54,10 @@ class Conductivity(Node):
         finally:
             writer.close()
             await writer.wait_closed()
+    
+    def parse_conductivity_line(self, data: str) -> float | None:
+        match = re.search(r"[+-]?\d*\.?\d+", data)
+        if match:
+            return float(match.group())
+        return None
 
