@@ -119,8 +119,11 @@ class Node:
     ):
         await self.is_started.wait()
         while self.is_started.is_set():
+            start = asyncio.get_event_loop().time()
             await timer_callback()
-            await asyncio.sleep(timer_period)
+            elapsed = asyncio.get_event_loop().time() - start
+            sleep_time = max(0.0, timer_period - elapsed)
+            await asyncio.sleep(sleep_time)
 
     async def open_serial_connection(self, url: str, baudrate: int):
         retry_period = 2
