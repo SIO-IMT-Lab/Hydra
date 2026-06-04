@@ -14,7 +14,7 @@ class SITA(Node):
     def __init__(self, config: dict):
         super().__init__("sita", config)
 
-        self.serial_port = self.node_config.get("serial_port", "/dev/ttyUSB1")
+        self.serial_port = self.node_config.get("serial_port", "/dev/ttyUSB0")
         self.baudrate = self.node_config.get("baudrate", 57600)
 
         self.warmup_time = self.node_config.get("warmup_time", 4.0)

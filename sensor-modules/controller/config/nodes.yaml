@@ -1,36 +1,41 @@
 exchanges:
-  conductivity:
+  Conductivity:
     name: "conductivity"
     message_type: "ConductivityData"
 
-  apc:
+  APC:
     name: "apc"
     message_type: "APCData"
 
-  sita:
+  SITA:
     name: "sita"
     message_type: "SITAData"
 
-  mcp_commands:
-    name: "mcp_commands"
-    message_type: "PDB_Command"
-
-  ads_values:
+  ADS_Values:
     name: "ads_values"
     message_type: "PDB_State"
+
+  PDB_Service_Requests:
+    name: "pdb_service_requests"
+    message_type: "PDB_ServiceRequest"
+
+  PDB_Service_Responses:
+    name: "pdb_service_responses"
+    message_type: "PDB_ServiceResponse"
+
 
 nodes:
   conductivity:
     serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if00-port0"
     baudrate: 9600
     read_timeout: 5.0
-    publish_exchange: "conductivity"
+    publish_exchange: "Conductivity"
 
   apc:
     serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if01-port0"
     baudrate: 9600 
     read_timeout: 5.0
-    publish_exchange: "apc"
+    publish_exchange: "APC"
 
   sita:
     serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
@@ -38,27 +43,29 @@ nodes:
     sample_read_interval: 10.0
     serial_read_timeout: 1.0
     measure_time_limit: 30.0
-    publish_exchange: "sita"
+    publish_exchange: "SITA"
 
   recorder:
     output_dir: "/mnt/hydra_data"
     subscribe_exchanges:
-      - "conductivity"
-      - "apc"
-      - "sita"
-      - "ads_values"
+      - "Conductivity"
+      - "APC"
+      - "SITA"
+      - "ADS_Values"
 
   pdb_controller:
     # ADS addresses are defined in pdb_pins.yaml
     mcp_address: 0x20
     ads_ratio: 11.060 # Original code has 24/2.17 as a default
     ads_interval: 60.0 # Seconds
-    publish_exchange: "ads_values"
-    subscribe_exchange: "mcp_commands"
+    publish_exchange: "ADS_Values"
+    service_request_exchange: "PDB_Service_Requests"
+    service_response_exchange: "PDB_Service_Responses"
 
   supervisor:
-    publish_exchange: "mcp_commands"
-    
+    service_request_exchange: "PDB_Service_Requests"    
+    service_response_exchange: "PDB_Service_Responses"
+
   heartbeat:
     high_time: 1.0 # Seconds
     low_time: 5.0 # Seconds

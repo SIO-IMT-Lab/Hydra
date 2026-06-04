@@ -5,7 +5,8 @@ from core.node import Node
 from core.message_types import ConductivityData, Time
 from core.utils import get_exchange_name
 
-
+# TODO: Looking at the Codebase now, creating a parent SensorNode class would 
+# go a long way since Conductivity, APC, and SITA are all quite similar
 class Conductivity(Node):
     
     def __init__(self, config: dict):
@@ -24,37 +25,43 @@ class Conductivity(Node):
         self.create_task(self.publish_conductivity)
 
     async def publish_conductivity(self):
-        reader, writer = await self.open_serial_connection(
-            url=self.serial_port,
-            baudrate=self.baudrate
-        )
+        
+        while True:
+            try:
+                reader, writer = await self.open_serial_connection(
+                    url=self.serial_port,
+                    baudrate=self.baudrate
+                )
 
-        try:
-            while True:
                 try:
-                    raw_data = await asyncio.wait_for(
-                        reader.readline(),
-                        timeout=self.read_timeout
-                    )
-                except asyncio.TimeoutError:
-                    self.logger.warning(
-                        "Timed out waiting for conductivity data"
-                    )
-                    continue
-                timestamp = Time.now() # Want the time as soon as possible
+                    while True:
+                        try:
+                            raw_data = await asyncio.wait_for(
+                                reader.readline(),
+                                timeout=self.read_timeout
+                            )
+                        except asyncio.TimeoutError:
+                            self.logger.warning(
+                                "Timed out waiting for conductivity data"
+                            )
+                            continue
+                        timestamp = Time.now() # Want the time as soon as possible
 
-                data = raw_data.decode(errors="ignore").strip()
-                clean_data = self.parse_conductivity_line(data)
-                if clean_data is None:
-                    self.logger.warning("Malformed conductivity data: %r", data)
-                    continue
+                        data = raw_data.decode(errors="ignore").strip()
+                        clean_data = self.parse_conductivity_line(data)
+                        if clean_data is None:
+                            self.logger.warning("Malformed conductivity data: %r", data)
+                            continue
 
-                msg = ConductivityData(conductivity=float(clean_data), timestamp=timestamp)
-                self.conductivity_publisher.publish(msg, self.exchange_name)
-                self.logger.info("Published conductivity data: %s", msg.to_dict())
-        finally:
-            writer.close()
-            await writer.wait_closed()
+                        msg = ConductivityData(conductivity=float(clean_data), timestamp=timestamp)
+                        self.conductivity_publisher.publish(msg, self.exchange_name)
+                        self.logger.info("Published conductivity data: %s", msg.to_dict())
+                finally:
+                    writer.close()
+                    await writer.wait_closed()
+            except Exception:
+                await asyncio.sleep(5)
+
     
     def parse_conductivity_line(self, data: str) -> float | None:
         match = re.search(r"[+-]?\d*\.?\d+", data)

@@ -10,7 +10,7 @@ class ADS:
     
     def __init__(self, 
                  ratio: float,
-                 ADS_info_config: dict[str, str],
+                 ADS_info_config: dict[str, dict],
                  logger
     ) -> None:
         """
@@ -29,12 +29,10 @@ class ADS:
         for name, config in self.ADS_info_config.items():
             addr = config.get("i2c_address")
             ch = config.get("ads_channel")
-            if addr is None:
-                self.logger.warning(
-                    "No I2C address specified for ADS device '%s' in config.",
-                    name,
+            if addr is None or ch is None:
+                raise ValueError(
+                    f"No I2C address or ADS channel specified for ADS device {name} in config."
                 )
-                continue
             address_to_device[addr][ch] = name
             
         i2c = board.I2C()
@@ -48,10 +46,20 @@ class ADS:
             for ch, name in channel_map.items()
         }
         
-    def read_ads(self):
-        """Read voltage values from all channels of all ADS1015 devices"""
+    def read_all_voltages(self) -> dict[str, float]:
+        """Read voltage values from all channels on the ADS1015 devices"""
         ads_values = {}
         for name, ch in self.channels.items():
             voltage = ch.voltage * self.ratio
             ads_values[name] = voltage
         return ads_values
+
+    def read_specific_voltages(self, name) -> float | None:
+        """
+        Read the voltage value from a single channel on the ADS1015 devices
+
+        Returns None if name doesn't exist
+        """
+        if name not in self.channels:
+            return None
+        return self.channels[name].voltage * self.ratio

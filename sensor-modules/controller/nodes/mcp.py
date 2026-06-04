@@ -21,19 +21,23 @@ class MCP:
             pin.direction = digitalio.Direction.OUTPUT
             pin.value = False
 
-    def set_pin(self, name: str, value: bool) -> None:
-        """Set the value of a specific pin on the MCP23017."""
-        pin_obj = self._get_pin_obj(name)
-        if pin_obj is None:
-            return
-        if pin_obj.value != value:
-            pin_obj.value = value
+    def set_pin(self, name: str, value: bool) -> bool | None:
+        """
+        Set a pin. Returns True on success, or None if the pin name is unknown.
 
-    def get_pin(self, name: str) -> bool:
-        """Get the value of a specific pin on the MCP23017."""
+        Note: Made this return None instead of False for consistency with similar functions
+        """
         pin_obj = self._get_pin_obj(name)
         if pin_obj is None:
-            return False
+            return None
+        pin_obj.value = value
+        return True
+
+    def get_pin(self, name: str) -> bool | None:
+        """Get a pin's value, or None if the pin name is unknown."""
+        pin_obj = self._get_pin_obj(name)
+        if pin_obj is None:
+            return None
         return pin_obj.value
             
     def _get_pin_obj(self, name: str):

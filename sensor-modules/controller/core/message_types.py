@@ -160,19 +160,6 @@ class SITAData:
             value_1=float(data["value_1"]),
             value_2=float(data["value_2"]),
         )
-    
-     
-@dataclass(slots=True)
-class PDB_Command:
-    pin_name: str
-    new_state: bool # True for on, False for off
-
-    def to_dict(self) -> dict[str, Any]:
-        return { "pin_name": self.pin_name, "new_state": self.new_state }
-    
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "PDB_Command":
-        return cls(pin_name=data["pin_name"], new_state=data["new_state"])
 
 
 @dataclass(slots=True)
@@ -238,6 +225,7 @@ class PDB_ServiceResponse:
     success: bool
     actual_voltage: float
     pin_name: str
+    error_message: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -245,6 +233,7 @@ class PDB_ServiceResponse:
             "success": self.success,
             "actual_voltage": self.actual_voltage,
             "pin_name": self.pin_name,
+            "error_message": self.error_message
         }
 
     @classmethod
@@ -253,7 +242,8 @@ class PDB_ServiceResponse:
             correlation_id=data["correlation_id"],
             success=data["success"],
             actual_voltage=data["actual_voltage"],
-            pin_name=data["pin_name"]
+            pin_name=data["pin_name"],
+            error_message=data["error_message"]
         )
 
 
@@ -263,7 +253,6 @@ MESSAGE_TYPE_REGISTRY = {
     "ConductivityData": ConductivityData,
     "APCData": APCData,
     "SITAData": SITAData,
-    "PDB_Command": PDB_Command,
     "PDB_State": PDB_State,
     "PDB_ServiceRequest": PDB_ServiceRequest,
     "PDB_ServiceResponse": PDB_ServiceResponse

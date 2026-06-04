@@ -23,37 +23,42 @@ class APC(Node):
         self.create_task(self.publish_apc)
 
     async def publish_apc(self):
-        reader, writer = await self.open_serial_connection(
-            url=self.serial_port,
-            baudrate=self.baudrate
-        )
+        
+        while True:
+            try:
+                reader, writer = await self.open_serial_connection(
+                    url=self.serial_port,
+                    baudrate=self.baudrate
+                )
 
-        try:
-            while True:
                 try:
-                    raw_data = await asyncio.wait_for(
-                        reader.readline(),
-                        timeout=self.read_timeout
-                    )
-                except asyncio.TimeoutError:
-                    self.logger.warning(
-                        "Timed out waiting for apc data"
-                    )
-                    continue
-                timestamp = Time.now() # Want the time as soon as possible
+                    while True:
+                        try:
+                            raw_data = await asyncio.wait_for(
+                                reader.readline(),
+                                timeout=self.read_timeout
+                            )
+                        except asyncio.TimeoutError:
+                            self.logger.warning(
+                                "Timed out waiting for apc data"
+                            )
+                            continue
+                        timestamp = Time.now() # Want the time as soon as possible
 
-                data = raw_data.decode(errors="ignore").strip()
-                clean_data = self.parse_apc_line(data)
-                if clean_data is None:
-                    self.logger.warning("Malformed APC data: %r", data)
-                    continue
+                        data = raw_data.decode(errors="ignore").strip()
+                        clean_data = self.parse_apc_line(data)
+                        if clean_data is None:
+                            self.logger.warning("Malformed APC data: %r", data)
+                            continue
 
-                msg = APCData(timestamp=timestamp, **clean_data)
-                self.apc_publisher.publish(msg, self.exchange_name)
-                self.logger.info("Published APC data: %s", msg.to_dict())
-        finally:
-            writer.close()
-            await writer.wait_closed()
+                        msg = APCData(timestamp=timestamp, **clean_data)
+                        self.apc_publisher.publish(msg, self.exchange_name)
+                        self.logger.info("Published APC data: %s", msg.to_dict())
+                finally:
+                    writer.close()
+                    await writer.wait_closed()
+            except Exception:
+                await asyncio.sleep(5)
 
     def parse_apc_line(self, line: str) -> dict[float, float] | None:
         try:

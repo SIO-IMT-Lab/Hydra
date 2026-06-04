@@ -96,19 +96,19 @@ class Node:
         return subscriber
     
     def create_service(self,
-                       response_type: type[TResponse],
-                       response_exchange: str,
                        request_type: type[TRequest],
                        request_exchange: str, 
+                       response_type: type[TResponse],
+                       response_exchange: str,
                        user_callback: Callable[[TRequest], Awaitable[Any]],
     ) -> None:
         """
         Create a new service.
 
-        :param response_type:
-        :param response_exchange:
         :param request_type:
         :param request_exchange:
+        :param response_type:
+        :param response_exchange:
         :param user_callback:
         """
         response_publisher = self.create_publisher(response_type, response_exchange)
@@ -125,14 +125,14 @@ class Node:
         )
     
     async def call_service(self,
-                           response_type: type[TResponse],
-                           response_exchange: str,
                            request_publisher: Publisher,
                            request: TRequest,
+                           response_type: type[TResponse],
+                           response_exchange: str,
                            timeout: float = 5.0
-    ) -> TResponse:
+    ) -> TResponse | None:
         """
-        Create a Publisher
+        Call a service.
         """
         loop = asyncio.get_running_loop()
         service_future = loop.create_future()
@@ -190,7 +190,12 @@ class Node:
         await self.is_started.wait()
         while self.is_started.is_set():
             start = asyncio.get_running_loop().time()
-            await timer_callback()
+            
+            try:
+                await timer_callback()
+            except Exception:
+                self.logger.exception("Timer callback '%s' raised an exception", timer_callback.__name__)
+
             elapsed = asyncio.get_running_loop().time() - start
             sleep_time = max(0.0, timer_period - elapsed)
             await asyncio.sleep(sleep_time)
