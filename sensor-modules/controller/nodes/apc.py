@@ -43,16 +43,26 @@ class APC(Node):
                 timestamp = Time.now() # Want the time as soon as possible
 
                 data = raw_data.decode(errors="ignore").strip()
-                if not data:
+                clean_data = self.parse_apc_line(data)
+                if clean_data is None:
+                    self.logger.warning("Malformed APC data: %r", data)
                     continue
-                
-                data = data.split(",")
-                value1 = float(data[0])
-                value2 = float(data[1])
 
-                msg = APCData(value_1=value1, value_2=value2, timestamp=timestamp)
+                msg = APCData(timestamp=timestamp, **clean_data)
                 self.apc_publisher.publish(msg, self.exchange_name)
                 self.logger.info("Published APC data: %s", msg.to_dict())
         finally:
             writer.close()
             await writer.wait_closed()
+
+    def parse_apc_line(self, line: str) -> dict[float, float] | None:
+        try:
+            data = line.split(",")
+            values = {
+                "value_1": float(data[0]),
+                "value_2": float(data[1])
+            }
+        except (ValueError, TypeError, IndexError, AttributeError):
+            return None
+
+        return values

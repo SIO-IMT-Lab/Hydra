@@ -12,6 +12,8 @@ from .message_types import SerializableMsg
 
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
+TRequest = TypeVar("TRequest", bound=SerializableMsg)
+TResponse = TypeVar("TResponse", bound=SerializableMsg)
 
 class Node:
     """
@@ -92,6 +94,75 @@ class Node:
         subscriber = Subscriber(msg_type, exchange, user_callback, binding_keys)
         self._subscribers.append(subscriber)
         return subscriber
+    
+    def create_service(self,
+                       response_type: type[TResponse],
+                       response_exchange: str,
+                       request_type: type[TRequest],
+                       request_exchange: str, 
+                       user_callback: Callable[[TRequest], Awaitable[Any]],
+    ) -> None:
+        """
+        Create a new service.
+
+        :param response_type:
+        :param response_exchange:
+        :param request_type:
+        :param request_exchange:
+        :param user_callback:
+        """
+        response_publisher = self.create_publisher(response_type, response_exchange)
+
+        async def service_handler(request: TRequest) -> None:
+            response = await user_callback(request)
+            response_publisher.publish(response, response.correlation_id)
+        
+        self.create_subscription(
+            msg_type=request_type,
+            exchange=request_exchange,
+            user_callback=service_handler,
+            binding_keys=["#"],
+        )
+    
+    async def call_service(self,
+                           response_type: type[TResponse],
+                           response_exchange: str,
+                           request_publisher: Publisher,
+                           request: TRequest,
+                           timeout: float = 5.0
+    ) -> TResponse:
+        """
+        Create a Publisher
+        """
+        loop = asyncio.get_running_loop()
+        service_future = loop.create_future()
+
+        async def on_response(response: TResponse) -> None:
+            if not service_future.done():
+                service_future.set_result(response)
+
+        subscriber = Subscriber(
+            msg_type=response_type,
+            exchange=response_exchange,
+            user_callback=on_response,
+            binding_keys=[request.correlation_id]
+        )
+        channel = await self._server_connection.create_channel(response_exchange)
+        await subscriber.attach_channel(channel)
+
+        request_publisher.publish(request, request.correlation_id)
+
+        try:
+            return await asyncio.wait_for(service_future, timeout=timeout)
+        except asyncio.TimeoutError:
+            self.logger.warning(
+                "Service call with correlation ID %s timed out after %ss",
+                request.correlation_id,
+                timeout
+            )
+        finally:
+            if not channel.is_closed:
+                channel.close() 
 
     def create_task(self, task_callback: Callable[[], Awaitable[Any]]) -> None:
         """
@@ -106,7 +177,6 @@ class Node:
         else:
             self._tasks.append(asyncio.create_task(task_callback()))
 
-    # TODO: Create and return a dedicated Timer class
     def create_timer(self, 
                      timer_period: float, 
                      timer_callback: Callable[[], Awaitable[Any]]
@@ -119,9 +189,9 @@ class Node:
     ):
         await self.is_started.wait()
         while self.is_started.is_set():
-            start = asyncio.get_event_loop().time()
+            start = asyncio.get_running_loop().time()
             await timer_callback()
-            elapsed = asyncio.get_event_loop().time() - start
+            elapsed = asyncio.get_running_loop().time() - start
             sleep_time = max(0.0, timer_period - elapsed)
             await asyncio.sleep(sleep_time)
 

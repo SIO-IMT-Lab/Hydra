@@ -7,10 +7,9 @@ from core.utils import get_exchange_name
 
 class Supervisor(Node):
     
-    def __init__(self, config: dict, pdb_config: dict):
+    def __init__(self, config: dict):
         super().__init__("supervisor", config)
 
-        
         self.publish_exchange_name = get_exchange_name(
             self.node_config,
             self.exchanges,

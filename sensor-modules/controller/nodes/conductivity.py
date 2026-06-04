@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from core.node import Node 
 from core.message_types import ConductivityData, Time
@@ -45,7 +46,7 @@ class Conductivity(Node):
                 data = raw_data.decode(errors="ignore").strip()
                 clean_data = self.parse_conductivity_line(data)
                 if clean_data is None:
-                    self.logger.warning("Bad conductivity data: %r", data)
+                    self.logger.warning("Malformed conductivity data: %r", data)
                     continue
 
                 msg = ConductivityData(conductivity=float(clean_data), timestamp=timestamp)

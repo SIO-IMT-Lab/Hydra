@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Generic, Sequence, TypeVar
 import pika
 
 from .message_types import SerializableMsg
-from .server_connection import ServerConnection
+
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
 

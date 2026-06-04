@@ -53,9 +53,12 @@ class SITA(Node):
                     if line is None:
                         self.logger.warning("SITA measurement timed out")
                     else:
-                        self.logger.warning(line)
-                        values = self.parse_line(line)
-                        msg = SITAData(timestamp=timestamp, **values)
+                        clean_data = self.parse_sita_line(line)
+                        if clean_data is None:
+                            self.logger.warning("Malformed SITA data: %r", line)
+                            continue
+
+                        msg = SITAData(timestamp=timestamp, **clean_data)
                         self.sita_publisher.publish(msg, self.exchange_name)
                         self.logger.info("Published SITA data: %s", msg.to_dict())
 
@@ -118,15 +121,20 @@ class SITA(Node):
         writer.write(command.value)
         await writer.drain()
     
-    def parse_line(self, line):
+    def parse_sita_line(self, line) -> dict[float, float] | None:
         """
         Parses SITA Data Line
         Raw Data Example: S31 1 81.0 15 23.9 3 22:13 29.05.26
         """
-        values = {}
-        data = line.split(" ")
-        values["value_1"] = data[2]
-        values["value_2"] = data[4]
+        try:
+            data = line.split()
+            values = {
+                "value_1": float(data[2]),
+                "value_2": float(data[4]),
+            }
+        except (ValueError, TypeError, IndexError, AttributeError):
+            return None
+
         return values
 
 

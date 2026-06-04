@@ -23,11 +23,11 @@ def main(args=None):
     nodes = [
         APC(node_config),
         Conductivity(node_config),
+        SITA(node_config),
         PDB_Controller(node_config, pdb_config),
         Recorder(node_config),
-        SITA(node_config),
         Heartbeat(node_config),
-        Supervisor(node_config, pdb_config)
+        Supervisor(node_config)
     ]
     
     launch(nodes)

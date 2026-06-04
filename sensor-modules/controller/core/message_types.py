@@ -210,6 +210,53 @@ class PDB_State:
         )
 
 
+@dataclass(slots=True)
+class PDB_ServiceRequest:
+    correlation_id: str
+    pin_name: str
+    new_state: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "correlation_id": self.correlation_id,
+            "pin_name": self.pin_name,
+            "new_state": self.new_state
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PDB_ServiceRequest":
+        return cls(
+            correlation_id=data["correlation_id"],
+            pin_name=data["pin_name"],
+            new_state=data["new_state"]
+        )
+
+
+@dataclass(slots=True)
+class PDB_ServiceResponse:
+    correlation_id: str
+    success: bool
+    actual_voltage: float
+    pin_name: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "correlation_id": self.correlation_id,
+            "success": self.success,
+            "actual_voltage": self.actual_voltage,
+            "pin_name": self.pin_name,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PDB_ServiceResponse":
+        return cls(
+            correlation_id=data["correlation_id"],
+            success=data["success"],
+            actual_voltage=data["actual_voltage"],
+            pin_name=data["pin_name"]
+        )
+
+
 MESSAGE_TYPE_REGISTRY = {
     "String": String,
     "Time": Time,
@@ -218,11 +265,12 @@ MESSAGE_TYPE_REGISTRY = {
     "SITAData": SITAData,
     "PDB_Command": PDB_Command,
     "PDB_State": PDB_State,
+    "PDB_ServiceRequest": PDB_ServiceRequest,
+    "PDB_ServiceResponse": PDB_ServiceResponse
 }
 
 def get_message_class(message_type: str):
     if message_type not in MESSAGE_TYPE_REGISTRY:
-        # TODO: Replace with proper logging and custom exception
-        raise ValueError(f"Message type '{message_type}' not found in registry.")
+        raise ValueError(f"Message type '{message_type}' not found in registry")
     return MESSAGE_TYPE_REGISTRY[message_type]
 

@@ -49,4 +49,4 @@ class PDB_Controller(Node):
 
     async def receive_commands(self, command: PDB_Command):
         self.logger.info("Received PDB command: %s", command)
-        await asyncio.to_thread(self.mcp.set_pin(command.pin_name, command.new_state))
+        await asyncio.to_thread(self.mcp.set_pin, command.pin_name, command.new_state)

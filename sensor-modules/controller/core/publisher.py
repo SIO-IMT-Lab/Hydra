@@ -1,10 +1,10 @@
+from typing import Generic, TypeVar
 import json
-from typing import Generic, Protocol, TypeVar
 
 import pika
 
 from .message_types import SerializableMsg
-from .server_connection import ServerConnection
+
 
 TMsg = TypeVar("TMsg", bound=SerializableMsg)
 

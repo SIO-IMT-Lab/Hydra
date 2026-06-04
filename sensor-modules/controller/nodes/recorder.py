@@ -49,7 +49,6 @@ class Recorder(Node):
         """
         pass
 
-
     def recorder_callback_factory(self, exchange: str):
         filename = f"{exchange}_data.csv"
         file_path = self.output_dir / filename
