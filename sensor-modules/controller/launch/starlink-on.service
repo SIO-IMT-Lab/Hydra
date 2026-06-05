@@ -1,0 +1,14 @@
+[Unit]
+Description=Hydra Starlink power-on
+After=network.target
+# After=rabbitmq-server.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/imt/Hydra/sensor-modules/controller
+ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.starlink_on_launch
+# Schedule the power-off 30 min after this power-on actually runs.
+ExecStartPost=/usr/bin/systemd-run --on-active=20min --unit=hydra-starlink-off-trigger /usr/bin/systemctl start starlink-off.service
+TimeoutStartSec=300
+
+# No [Install]: this is launched by hydra-starlink-on.timer, not enabled directly.

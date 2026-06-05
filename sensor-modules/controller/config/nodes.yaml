@@ -40,7 +40,7 @@ nodes:
   sita:
     serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
     baudrate: 57600
-    sample_read_interval: 10.0
+    sample_read_interval: 60.0
     serial_read_timeout: 1.0
     measure_time_limit: 30.0
     publish_exchange: "SITA"
@@ -63,6 +63,18 @@ nodes:
     service_response_exchange: "PDB_Service_Responses"
 
   supervisor:
+    service_request_exchange: "PDB_Service_Requests"    
+    service_response_exchange: "PDB_Service_Responses"
+
+  user:
+    service_request_exchange: "PDB_Service_Requests"    
+    service_response_exchange: "PDB_Service_Responses"
+    
+  starlink_on:
+    service_request_exchange: "PDB_Service_Requests"    
+    service_response_exchange: "PDB_Service_Responses"
+
+  starlink_off:
     service_request_exchange: "PDB_Service_Requests"    
     service_response_exchange: "PDB_Service_Responses"
 

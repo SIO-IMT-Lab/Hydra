@@ -19,7 +19,6 @@ class MCP:
         for i in range(16):
             pin = self.mcp.get_pin(i)
             pin.direction = digitalio.Direction.OUTPUT
-            pin.value = False
 
     def set_pin(self, name: str, value: bool) -> bool | None:
         """
