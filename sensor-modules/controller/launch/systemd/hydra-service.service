@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=imt
 WorkingDirectory=/home/imt/Hydra/sensor-modules/controller
-ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.launch
+ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.main_launch
 Restart=on-failure
 RestartSec=5
 

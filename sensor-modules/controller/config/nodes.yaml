@@ -28,21 +28,21 @@ nodes:
   conductivity:
     serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if00-port0"
     baudrate: 9600
-    read_timeout: 5.0
+    read_timeout: 120.0 # Seconds
     publish_exchange: "Conductivity"
 
   apc:
     serial_port: "/dev/serial/by-id/usb-UTEK_USB__-__Serial_Converter_FT9EJUZ4-if01-port0"
     baudrate: 9600 
-    read_timeout: 5.0
+    read_timeout: 120.0 # Seconds
     publish_exchange: "APC"
 
   sita:
     serial_port: "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AK06HO0D-if00-port0"
     baudrate: 57600
-    sample_read_interval: 60.0
+    sample_read_interval: 120.0 # Seconds
     serial_read_timeout: 1.0
-    measure_time_limit: 30.0
+    measure_time_limit: 30.0 # Seconds
     publish_exchange: "SITA"
 
   recorder:

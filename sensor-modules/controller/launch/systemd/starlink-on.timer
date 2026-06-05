@@ -2,7 +2,10 @@
 Description=Schedule Hydra Starlink power-on
 
 [Timer]
-OnCalendar=*-*-* 21:05:00
+OnCalendar=*-*-* 23:00:00
+OnCalendar=*-*-* 23:20:00
+OnCalendar=*-*-* 23:40:00
+OnCalendar=*-*-* 00:00:00
 Persistent=true
 
 [Install]

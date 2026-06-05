@@ -87,3 +87,7 @@ class ServerConnection:
                                  exchange_type=exchange_type, 
                                  callback=on_exchange_declared)
         await exchange_future
+    
+    def close(self) -> None:
+        if self.connection is not None and not self.connection.is_closed:
+            self.connection.close()

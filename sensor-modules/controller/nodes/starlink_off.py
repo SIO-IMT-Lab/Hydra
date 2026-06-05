@@ -1,7 +1,5 @@
 import asyncio
-import uuid
  
-from core.message_types import PDB_ServiceRequest, PDB_ServiceResponse
 from core.utils import get_exchange_name
 from nodes.pdb_client import PDB_Client
  
@@ -21,21 +19,17 @@ class StarLinkOff(PDB_Client):
                 if success:
                     break
                 self.logger.warning(
-                    "Attempt %d to enable %s failed, retrying...",
-                    attempt,
-                    self.pin_name,
+                    "Attempt %d to disable STARLINK failed, retrying...",
+                    attempt
                 )
                 await asyncio.sleep(1)
  
             if not success:
                 self.logger.error(
-                    "Could not enable %s after retries; shutting down",
-                    self.pin_name,
+                    "Could not disable STARLINK after retries; shutting down",
                 )
 
         finally:
             # Always tear down so systemd sees the unit complete.
-            await self.shutdown()
- 
-    async def shutdown(self):
-        pass
+            await self.stop()
+

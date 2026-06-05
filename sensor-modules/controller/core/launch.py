@@ -6,7 +6,7 @@ from .node import Node
 
 async def run_nodes(nodes: Sequence[Node]):
     await asyncio.gather(*(node.start() for node in nodes))
-    await asyncio.Event().wait()
+    await asyncio.gather(*(node.is_stopped.wait() for node in nodes))
     
 def launch(nodes: Sequence[Node]):
     try:
@@ -17,7 +17,7 @@ def launch(nodes: Sequence[Node]):
 
 async def run_node(node: Node):
     await node.start()
-    await asyncio.Event().wait() 
+    await node.is_stopped.wait()
     
 def spin(node: Node):
     try:

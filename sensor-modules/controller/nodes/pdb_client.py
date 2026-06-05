@@ -35,24 +35,21 @@ class PDB_Client(Node):
             response_exchange=self.response_exchange,
             timeout=5.0,
         )
-        if response is not None:
-            if response.success:
-                self.logger.info(
-                    "%s request SUCCEEDED: Voltage at %.2fV",
-                    pin_name,
-                    response.actual_voltage
-                )
-                return True
-            else:
-                self.logger.info(
-                    "%s request FAILED: Error message: %s",
-                    pin_name,
-                    response.error_message
-                )
+        if response is None:
+            self.logger.warning("Service request for pin %s timed out", pin_name)
+            return False
 
-        self.logger.warning(
-            "Service request for pin %s timed out", 
-            pin_name
+        if response.success:
+            self.logger.info(
+                "%s request SUCCEEDED: Voltage at %.2fV",
+                pin_name,
+                response.actual_voltage,
+            )
+            return True
+
+        self.logger.error(
+            "%s request FAILED: %s",
+            pin_name,
+            response.error_message,
         )
-
         return False

@@ -21,21 +21,16 @@ class StarLinkOn(PDB_Client):
                 if success:
                     break
                 self.logger.warning(
-                    "Attempt %d to enable %s failed, retrying...",
+                    "Attempt %d to enable STARLINK failed, retrying...",
                     attempt,
-                    self.pin_name,
                 )
                 await asyncio.sleep(1)
  
             if not success:
                 self.logger.error(
-                    "Could not enable %s after retries; shutting down",
-                    self.pin_name,
+                    "Could not enable STARLINK after retries; shutting down",
                 )
 
         finally:
             # Always tear down so systemd sees the unit complete.
-            await self.shutdown()
- 
-    async def shutdown(self):
-        pass
+            await self.stop()

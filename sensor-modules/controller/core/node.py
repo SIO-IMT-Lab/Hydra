@@ -37,6 +37,7 @@ class Node:
         self.exchanges = config.get("exchanges", {})
         
         self.is_started = asyncio.Event()
+        self.is_stopped = asyncio.Event()
         self._server_connection = ServerConnection(self.logger)
         
         self._publishers = []
@@ -62,6 +63,17 @@ class Node:
         self.pending_tasks.clear()
                     
         self.is_started.set()
+    
+    async def stop(self) -> None:
+        self.is_started.clear()
+        current = asyncio.current_task()
+        tasks_to_cancel = [t for t in self._tasks if t is not current]
+        for task in tasks_to_cancel:
+            task.cancel()
+        if tasks_to_cancel:
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+        self._server_connection.close()
+        self.is_stopped.set()
     
     def create_publisher(self, 
                          msg_type: type[TMsg], 
