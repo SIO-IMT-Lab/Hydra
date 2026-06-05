@@ -27,7 +27,11 @@ def main(args=None):
         PDB_Controller(node_config, pdb_config),
         Recorder(node_config),
         Heartbeat(node_config),
-        Supervisor(node_config)
+        # Supervisor(node_config)
+        
+        # User(node_config),
+        
+        # Starlink(node_config)
     ]
     
     launch(nodes)

@@ -6,10 +6,10 @@ from core.message_types import PDB_ServiceRequest, PDB_ServiceResponse
 from core.utils import get_exchange_name
 
 
-class Supervisor(Node):
+class PDB_Client(Node):
     
-    def __init__(self, config: dict):
-        super().__init__("supervisor", config)
+    def __init__(self, node_name: str, config: dict):
+        super().__init__(node_name, config)
 
         request_exchange = get_exchange_name(
             self.node_config,
@@ -22,12 +22,6 @@ class Supervisor(Node):
             "service_response_exchange",
         )
         self.pdb_request_publisher = self.create_publisher(PDB_ServiceRequest, request_exchange)
-
-        self.create_task(self.power_on_sensors)
-
-    # async def power_on_sensors(self):
-    #     while (not await self.send_service_call("CNDT", True)): asyncio.sleep(1)
-    #     while (not await self.send_service_call("APC", True)): asyncio.sleep(1)
 
     async def send_service_call(self, pin_name: str, new_state: bool):
         response = await self.call_service(
