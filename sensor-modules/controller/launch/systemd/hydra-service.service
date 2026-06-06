@@ -1,8 +1,10 @@
 [Unit]
 Description=Hydra Launcher 
-After=network-online.target
+After=network-online.target rabbitmq-server.service
 Wants=network-online.target
+Requires=rabbitmq-server.service
 RequiresMountsFor=/mnt/hydra_data
+
 
 [Service]
 Type=simple

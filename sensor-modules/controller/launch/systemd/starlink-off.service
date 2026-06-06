@@ -1,6 +1,8 @@
 [Unit]
 Description=Hydra Starlink power-off
-After=network.target
+After=network-online.target rabbitmq-server.service
+Wants=network-online.target
+Requires=rabbitmq-server.service
 RequiresMountsFor=/mnt/hydra_data
 
 [Service]
