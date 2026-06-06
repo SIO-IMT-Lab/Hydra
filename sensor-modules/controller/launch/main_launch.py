@@ -14,11 +14,6 @@ from nodes.heartbeat import Heartbeat
 def main(args=None):
     node_config = load_config("config/nodes.yaml")
     pdb_config = load_config("config/pdb_pins.yaml")
-    logging.basicConfig(
-            level=logging.WARNING,
-            format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%Y-%m-%dT%H:%M:%S%z'
-    )
    
     nodes = [
         APC(node_config),

@@ -1,5 +1,6 @@
-import asyncio
 from typing import Sequence
+import asyncio
+import logging
 
 from .node import Node
 
@@ -9,6 +10,11 @@ async def run_nodes(nodes: Sequence[Node]):
     await asyncio.gather(*(node.is_stopped.wait() for node in nodes))
     
 def launch(nodes: Sequence[Node]):
+    logging.basicConfig(
+            level=logging.WARNING,
+            format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
+            datefmt='%Y-%m-%dT%H:%M:%S%z'
+    )
     try:
         asyncio.run(run_nodes(nodes))
     except KeyboardInterrupt:

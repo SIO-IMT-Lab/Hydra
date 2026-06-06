@@ -7,9 +7,7 @@ After=network.target
 Type=oneshot
 User=imt
 WorkingDirectory=/home/imt/Hydra/sensor-modules/controller
-ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.starlink_on_launch
-# Schedule the power-off 10 min after this power-on actually runs.
-ExecStartPost=/usr/bin/systemd-run --on-active=10min --unit=hydra-starlink-off-trigger /usr/bin/systemctl start starlink-off.service
+ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.starlink_launch --state enable
 TimeoutStartSec=300
 
 # No [Install]: this is launched by hydra-starlink-on.timer, not enabled directly.

@@ -6,7 +6,7 @@ After=network.target
 Type=oneshot
 User=imt
 WorkingDirectory=/home/imt/Hydra/sensor-modules/controller
-ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.starlink_off_launch
+ExecStart=/home/imt/Hydra/sensor-modules/.venv/bin/python -m launch.starlink_launch --state disable
 TimeoutStartSec=60
 
 # No [Install]/timer: started on demand by the scheduled trigger above.

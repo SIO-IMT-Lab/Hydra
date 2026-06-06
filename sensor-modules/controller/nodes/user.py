@@ -8,14 +8,16 @@ from nodes.pdb_client import PDB_Client
 
 class User(PDB_Client):
     
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, pdb_config: dict):
         super().__init__("user", config)
 
+        self.pin_names = list(pdb_config.get("Control_Pins", {}).keys())
         self.create_task(self.run_cli)
 
     async def run_cli(self):
         """Interactive shell for PDB pin control."""
         self.logger.info("PDB pin control CLI")
+        self.logger.info("Available pins: %s", ", ".join(self.pin_names))
         self.logger.info("Commands: set <PIN> on|off, toggle <PIN>, status, exit")
 
         try:
