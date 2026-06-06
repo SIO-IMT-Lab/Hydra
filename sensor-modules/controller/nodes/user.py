@@ -18,13 +18,11 @@ class User(PDB_Client):
         """Interactive shell for PDB pin control."""
         self.logger.info("PDB pin control CLI")
         self.logger.info("Available pins: %s", ", ".join(self.pin_names))
-        self.logger.info("Commands: set <PIN> on|off, toggle <PIN>, status, exit")
+        self.logger.info("Commands: set <PIN> on|off, exit")
 
         try:
             while True:
-                # input() blocks, so offload it to a thread to keep the
-                # event loop responsive.
-                raw = await asyncio.to_thread(input, ">>> ")
+                raw = input(">>> ")
                 command = raw.strip()
                 if not command:
                     continue
@@ -53,16 +51,12 @@ class User(PDB_Client):
                     else:
                         self.logger.warning("Invalid command format. Example: set CNDT on")
 
-                elif keyword == "toggle":
-                    # TODO: needs a current-state read before flipping
-                    pass
-
                 elif keyword == "status":
                     # TODO: needs a state query service
                     pass
 
                 else:
-                    self.logger.warning("Unknown command. Available: set, toggle, status, exit")
+                    self.logger.warning("Unknown command. Available: set, exit")
 
         except (KeyboardInterrupt, EOFError):
             self.logger.info("Exiting cleanly...")

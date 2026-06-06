@@ -2,6 +2,7 @@
 Description=Hydra Launcher 
 After=network-online.target
 Wants=network-online.target
+RequiresMountsFor=/mnt/hydra_data
 
 [Service]
 Type=simple

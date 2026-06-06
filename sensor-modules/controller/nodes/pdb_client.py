@@ -33,7 +33,7 @@ class PDB_Client(Node):
             request_publisher=self.pdb_request_publisher,
             response_type=PDB_ServiceResponse,
             response_exchange=self.response_exchange,
-            timeout=5.0,
+            timeout=10.0,
         )
         if response is None:
             self.logger.warning("Service request for pin %s timed out", pin_name)

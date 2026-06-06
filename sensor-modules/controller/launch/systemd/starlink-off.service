@@ -1,6 +1,7 @@
 [Unit]
 Description=Hydra Starlink power-off
 After=network.target
+RequiresMountsFor=/mnt/hydra_data
 
 [Service]
 Type=oneshot

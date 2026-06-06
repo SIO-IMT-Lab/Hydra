@@ -13,7 +13,7 @@ def main(args=None):
         User(node_config, pdb_config),
     ]
     
-    launch(nodes)
+    launch(nodes, log_level=logging.INFO)
 
 if __name__ == '__main__':
     main()

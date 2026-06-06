@@ -35,44 +35,46 @@ class SITA(Node):
         self.create_task(self.publish_sita)
 
     async def publish_sita(self):
-        self.enable_pin.on()
-        try:
-            await asyncio.sleep(self.warmup_time)
 
-            reader, writer = await self.open_serial_connection(
-                url=self.serial_port,
-                baudrate=self.baudrate
-            )
-
+        while True:
             try:
-                while True:
-                    await self.power_on(writer)
-                    line, timestamp = await self.take_measurement(reader, writer)
-                    await self.power_off(writer)
+                self.enable_pin.on()
+                await asyncio.sleep(self.warmup_time)
 
-                    if line is None:
-                        self.logger.warning("SITA measurement timed out")
-                    else:
-                        clean_data = self.parse_sita_line(line)
-                        if clean_data is None:
-                            self.logger.warning("Malformed SITA data: %r", line)
-                            continue
+                reader, writer = await self.open_serial_connection(
+                    url=self.serial_port,
+                    baudrate=self.baudrate
+                )
 
-                        msg = SITAData(timestamp=timestamp, **clean_data)
-                        self.sita_publisher.publish(msg, self.exchange_name)
-                        self.logger.info("Published SITA data: %s", msg.to_dict())
-
-                    await asyncio.sleep(self.sample_read_interval)
-            finally:
                 try:
-                    await self.power_off(writer)
-                except Exception as e:
-                    self.logger.warning("Could not power off SITA: %s", e)
-                writer.close()
-                await writer.wait_closed()
-        finally:
-            self.enable_pin.off()
-            self.enable_pin.close()
+                    while True:
+                        await self.power_on(writer)
+                        line, timestamp = await self.take_measurement(reader, writer)
+                        await self.power_off(writer)
+
+                        if line is None:
+                            self.logger.warning("SITA measurement timed out")
+                        else:
+                            clean_data = self.parse_sita_line(line)
+                            if clean_data is None:
+                                self.logger.warning("Malformed SITA data: %r", line)
+                                continue
+
+                            msg = SITAData(timestamp=timestamp, **clean_data)
+                            self.sita_publisher.publish(msg, self.exchange_name)
+                            self.logger.info("Published SITA data: %s", msg.to_dict())
+
+                        await asyncio.sleep(self.sample_read_interval)
+                finally:
+                    try:
+                        await self.power_off(writer)
+                    except Exception as e:
+                        self.logger.warning("Could not power off SITA: %s", e)
+                    writer.close()
+                    await writer.wait_closed()
+            finally:
+                self.enable_pin.off()
+                self.enable_pin.close()
 
     async def power_on(self, writer):
         await self.send_command(writer, SITA_COMMANDS.POWER_UP)

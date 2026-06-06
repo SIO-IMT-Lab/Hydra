@@ -141,7 +141,7 @@ class Node:
                            request: TRequest,
                            response_type: type[TResponse],
                            response_exchange: str,
-                           timeout: float = 5.0
+                           timeout: float = 10.0
     ) -> TResponse | None:
         """
         Call a service.

@@ -1,6 +1,7 @@
 [Unit]
 Description=Hydra Starlink power-on
 After=network.target
+RequiresMountsFor=/mnt/hydra_data
 # After=rabbitmq-server.service
 
 [Service]

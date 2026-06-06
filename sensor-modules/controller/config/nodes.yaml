@@ -70,11 +70,7 @@ nodes:
     service_request_exchange: "PDB_Service_Requests"    
     service_response_exchange: "PDB_Service_Responses"
     
-  starlink_on:
-    service_request_exchange: "PDB_Service_Requests"    
-    service_response_exchange: "PDB_Service_Responses"
-
-  starlink_off:
+  starlink:
     service_request_exchange: "PDB_Service_Requests"    
     service_response_exchange: "PDB_Service_Responses"
 

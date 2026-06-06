@@ -15,7 +15,7 @@ def main():
     node_config = load_config("config/nodes.yaml")
    
     nodes = [        
-        StarLink(node_config, new_state=args.state),
+        StarLink(node_config, action=args.state),
     ]
     
     launch(nodes)

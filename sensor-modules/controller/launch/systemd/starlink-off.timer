@@ -1,5 +1,5 @@
 [Unit]
-Description=Schedule Hydra Starlink power-on
+Description=Schedule Hydra Starlink power-off
 
 [Timer]
 OnCalendar=*-*-* 20:50:00

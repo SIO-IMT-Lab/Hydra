@@ -59,7 +59,7 @@ class PDB_Controller(Node):
         self.logger.info("Received PDB request: %s", request)
 
         pin_set_status = await asyncio.to_thread(self.mcp.set_pin, request.pin_name, request.new_state)
-        await asyncio.sleep(3.0)
+        await asyncio.sleep(5.0) # Give the PDB enough time to settle
         pin_voltage = await asyncio.to_thread(self.ads.read_specific_voltages, request.pin_name)
 
         default_voltage = self.pdb_config.get("ADS_Info", {}).get(request.pin_name, {}).get("default_voltage", 0.0)
@@ -74,9 +74,11 @@ class PDB_Controller(Node):
             )
         
         if request.new_state:
-            success = pin_voltage > 0.8 * default_voltage
+            success = pin_voltage > 1.0
+            # success = pin_voltage > 0.8 * default_voltage
         else:
-            success = pin_voltage < 0.2 * default_voltage
+            success = pin_voltage < 1.0  
+            # success = pin_voltage < 0.2 * default_voltage
             
         return PDB_ServiceResponse(
             correlation_id=request.correlation_id,
