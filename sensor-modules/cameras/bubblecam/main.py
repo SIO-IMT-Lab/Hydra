@@ -54,6 +54,6 @@ if __name__ == "__main__":
         elif curr_state == State.WAVEBREAK:
             write_thread = threading.Thread(target=bubblecam.write_images, args=(queue, lock))
             write_thread.start()
-            write_thread.join()
+            # write_thread.join()
             curr_state = State.STORM
         time.sleep(0.5)

@@ -4,6 +4,7 @@ import os
 import time
 import threading
 import cv2
+import shutil
 
 from sys import getsizeof
 
@@ -95,6 +96,13 @@ class Camera:
 
         self.logger.debug("Wrote %d images to %s", idx + 1, dtime_path)
         self.lockout_until = time.time() + self.config.LOCKOUT_DELAY
+        total, used, free = shutil.disk_usage(self.config.IMG_DIR)
+        gb_free = free / (1024**3)
+        
+        AVG_IMG_SIZE = 2.5
+        hours_left = (free / (AVG_IMG_SIZE * 1024 * 1024)) / (self.config.FPS * 3600)
+        print(f"Free Space: {gb_free:.2f} GB")
+        print(f"Est. Time Remaining: {hours_left:.1f} hrs")
 
     def detect_event(self, buffer: Deque[str], lock: threading.Lock) -> None:
         """Trigger an event write if not currently locked out."""

@@ -62,6 +62,16 @@ class VideoCapture:
         self.cam.Init()
         self.nodemap = self.cam.GetNodeMap()
 
+        try:
+            node_pixel_format = PySpin.CEnumerationPtr(self.nodemap.GetNode("PixelFormat"))
+            if(PySpin.IsAvailable(node_pixel_format) and PySpin.IsWritable(node_pixel_format)):
+                node_pixel_format_mono8 = node_pixel_format.GetEntryByName("Mono8")
+                if(PySpin.IsAvailable(node_pixel_format_mono8) and PySpin.IsReadable(node_pixel_format_mono8)):
+                    node_pixel_format.SetIntValue(node_pixel_format_mono8.GetValue())
+                    print("Camera set to Mono8 (8-bit)")
+        except PySpin.SpinnakerException as ex:
+            print(f"Error setting pixel format: {ex}")
+
         s_node_map = self.cam.GetTLStreamNodeMap()
         handling_mode = PySpin.CEnumerationPtr(
             s_node_map.GetNode("StreamBufferHandlingMode")
