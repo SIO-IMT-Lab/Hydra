@@ -22,6 +22,7 @@ class PDB_Controller(Node):
             "publish_exchange",
         )
         self.ads = ADS(ads_ratio, pdb_config.get("ADS_Info", {}), self.logger)
+        self.ads_lock = asyncio.Lock()
         self.pdb_publisher = self.create_publisher(
             msg_type=PDB_State, 
             exchange=self.publish_exchange_name
@@ -49,7 +50,8 @@ class PDB_Controller(Node):
         )
 
     async def publish_voltages(self):
-        voltages = await asyncio.to_thread(self.ads.read_all_voltages)
+        async with self.ads_lock:
+            voltages = await asyncio.to_thread(self.ads.read_all_voltages)
         timestamp = Time.now()
         msg = PDB_State(voltages=voltages, timestamp=timestamp)
         self.pdb_publisher.publish(msg, self.publish_exchange_name)
@@ -60,7 +62,8 @@ class PDB_Controller(Node):
 
         pin_set_status = await asyncio.to_thread(self.mcp.set_pin, request.pin_name, request.new_state)
         await asyncio.sleep(5.0) # Give the PDB enough time to settle
-        pin_voltage = await asyncio.to_thread(self.ads.read_specific_voltages, request.pin_name)
+        async with self.ads_lock:
+            pin_voltage = await asyncio.to_thread(self.ads.read_specific_voltages, request.pin_name)
 
         default_voltage = self.pdb_config.get("ADS_Info", {}).get(request.pin_name, {}).get("default_voltage", 0.0)
 
@@ -74,11 +77,9 @@ class PDB_Controller(Node):
             )
         
         if request.new_state:
-            success = pin_voltage > 1.0
-            # success = pin_voltage > 0.8 * default_voltage
+            success = pin_voltage > 0.8 * default_voltage
         else:
-            success = pin_voltage < 1.0  
-            # success = pin_voltage < 0.2 * default_voltage
+            success = pin_voltage < 0.2 * default_voltage
             
         return PDB_ServiceResponse(
             correlation_id=request.correlation_id,

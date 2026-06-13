@@ -28,7 +28,7 @@ ADS_Info:
     ads_channel: 3
     voltage_low: null
     voltage_high: null
-    default_voltage: 24
+    default_voltage: 4.5
     channel: 3
 
   B-IN:
@@ -44,7 +44,7 @@ ADS_Info:
     ads_channel: 1
     voltage_low: null
     voltage_high: null
-    default_voltage: 24
+    default_voltage: 5
     channel: 5
 
   CNDT:
@@ -52,7 +52,7 @@ ADS_Info:
     ads_channel: 2
     voltage_low: null
     voltage_high: null
-    default_voltage: 24
+    default_voltage: 12
     channel: 6
 
   APC:
@@ -60,7 +60,7 @@ ADS_Info:
     ads_channel: 3
     voltage_low: null
     voltage_high: null
-    default_voltage: 24
+    default_voltage: 12
     channel: 7
 
   C-IN:
@@ -76,7 +76,7 @@ ADS_Info:
     ads_channel: 1
     voltage_low: null
     voltage_high: null
-    default_voltage: 12
+    default_voltage: 5
     channel: 9
 
   BUBBLE-CAM:
